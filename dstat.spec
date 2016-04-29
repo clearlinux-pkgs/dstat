@@ -4,7 +4,7 @@
 #
 Name     : dstat
 Version  : 0.7.2
-Release  : 9
+Release  : 10
 URL      : http://dag.wieers.com/home-made/dstat/dstat-0.7.2.tar.bz2
 Source0  : http://dag.wieers.com/home-made/dstat/dstat-0.7.2.tar.bz2
 Summary  : Pluggable real-time performance monitoring tool
