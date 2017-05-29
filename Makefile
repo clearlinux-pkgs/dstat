@@ -1,4 +1,5 @@
 PKG_NAME := dstat
-URL := http://dag.wieers.com/home-made/dstat/dstat-0.7.2.tar.bz2
+URL := https://github.com/dagwieers/dstat/archive/0.7.3.tar.gz
+
 
 include ../common/Makefile.common
