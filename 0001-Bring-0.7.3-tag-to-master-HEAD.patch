@@ -1,0 +1,1502 @@
+From ac5f1d666f5764a7fe9aa877a6db100fcad420f8 Mon Sep 17 00:00:00 2001
+From: Dag Wieers <dag@wieers.com>
+Date: Mon, 21 Mar 2016 14:58:17 +0100
+Subject: [PATCH] Bring 0.7.3 tag to master HEAD
+
+---
+ .github/ISSUE_TEMPLATE.md              |  31 ++++----
+ .github/PULL_REQUEST_TEMPLATE.md       |  10 ++-
+ .gitignore                             |   1 +
+ .travis.yml                            |  48 +++++++------
+ Makefile                               |   3 +
+ README.md                              |  19 -----
+ docs/dstat.1.adoc                      |   2 +-
+ docs/dstat.1.html                      |   2 +-
+ dstat                                  |  92 ++++++++++++------------
+ dstat.spec => packaging/rpm/dstat.spec |   0
+ packaging/snap/python2                 |   1 +
+ packaging/snap/snapcraft.yaml          |  29 ++++++++
+ plugins/dstat_disk_tps.py              |   6 +-
+ plugins/dstat_ib.py                    |  83 ++++++++++++++++++++++
+ plugins/dstat_jvm_full.py              | 125 +++++++++++++++++++++++++++++++++
+ plugins/dstat_jvm_vm.py                |  87 +++++++++++++++++++++++
+ plugins/dstat_lustre.py                |   4 +-
+ plugins/dstat_mongodb_conn.py          |  48 +++++++++++++
+ plugins/dstat_mongodb_mem.py           |  67 ++++++++++++++++++
+ plugins/dstat_mongodb_opcount.py       |  46 ++++++++++++
+ plugins/dstat_mongodb_queue.py         |  45 ++++++++++++
+ plugins/dstat_mongodb_stats.py         |  71 +++++++++++++++++++
+ plugins/dstat_net_packets.py           |   2 +-
+ plugins/dstat_snmp_net.py              |   2 +-
+ plugins/dstat_snmp_net_err.py          |   2 +-
+ plugins/dstat_thermal.py               |  24 +++++--
+ plugins/dstat_top_int.py               |  12 ++--
+ plugins/dstat_vmk_hba.py               |   2 +-
+ plugins/dstat_vmk_int.py               |   4 +-
+ plugins/dstat_vmk_nic.py               |   2 +-
+ 30 files changed, 749 insertions(+), 121 deletions(-)
+ create mode 100644 .gitignore
+ delete mode 100644 README.md
+ rename dstat.spec => packaging/rpm/dstat.spec (100%)
+ create mode 120000 packaging/snap/python2
+ create mode 100644 packaging/snap/snapcraft.yaml
+ create mode 100644 plugins/dstat_ib.py
+ create mode 100644 plugins/dstat_jvm_full.py
+ create mode 100644 plugins/dstat_jvm_vm.py
+ create mode 100644 plugins/dstat_mongodb_conn.py
+ create mode 100644 plugins/dstat_mongodb_mem.py
+ create mode 100644 plugins/dstat_mongodb_opcount.py
+ create mode 100644 plugins/dstat_mongodb_queue.py
+ create mode 100644 plugins/dstat_mongodb_stats.py
+
+diff --git a/.github/ISSUE_TEMPLATE.md b/.github/ISSUE_TEMPLATE.md
+index 3b43d23..b288354 100644
+--- a/.github/ISSUE_TEMPLATE.md
++++ b/.github/ISSUE_TEMPLATE.md
+@@ -1,43 +1,48 @@
+-##### SUMMARY
+-<!--- Please explain the problem briefly -->
++<!--- Verify first that your issue/request is not already reported in GitHub -->
+ 
++##### SUMMARY
++<!--- Explain the problem briefly here, details go way below -->
+ 
+ ##### ISSUE TYPE
+-<!--- Please pick one and delete the rest: -->
++<!--- Pick one below and delete the rest: -->
+  - Bug Report
+  - Feature Idea
+  - Documentation Report
+ 
+ ##### DSTAT VERSION
+ ```
+-<!--- Paste verbatim output from “dstat --version” here -->
++<!--- Paste verbatim output from “dstat --version” here between tripple quotes -->
+ ```
+ 
+ <!---
+-For extra credit, clone the latest development from the master branch
+-and test if the issue still occurs with the development version.
++Test your issue using the latest release AND using the master branch code.
++Download the latest release and the master branch from:
++
++    https://github.com/dagwieers/dstat/releases
++    https://github.com/dagwieers/dstat/archive/master.tar.gz
++
++You can run dstat directly from the source tree using: ./dstat
+ Mention below which versions work correctly, or when it started to fail.
+ -->
+ 
+ ##### OS / ENVIRONMENT
+ <!---
+-Please mention the OS you are running Dstat from, and anything
+-platform-specific for the plugin you are running.
++Mention the OS you are running Dstat from, and anything platform-specific
++that could be related to your issue.
+ -->
+ 
+ ##### STEPS TO REPRODUCE
+ <!---
+-For bugs, please show exactly how to reproduce the problem. For new
+-features, show how the feature would be used.
++For bugs, show exactly how to reproduce the problem.
++For new features, show how the feature would be used.
+ -->
+ 
+ ```
+-<!--- Paste example use or output here -->
++<!--- Paste example use or output here between quotes -->
+ ```
+ 
+ <!--- You can also paste gist.github.com links for larger files -->
+ 
+-
+ ##### EXPECTED RESULTS
+ <!--- What did you expect to happen when running the steps above? -->
+ 
+@@ -45,5 +50,5 @@ features, show how the feature would be used.
+ <!--- What actually happened? Try running with debug enabled "dstat --debug" -->
+ 
+ ```
+-<!--- Paste verbatim command output here -->
++<!--- Paste verbatim command output between quotes -->
+ ```
+diff --git a/.github/PULL_REQUEST_TEMPLATE.md b/.github/PULL_REQUEST_TEMPLATE.md
+index 5754c58..6b740e0 100644
+--- a/.github/PULL_REQUEST_TEMPLATE.md
++++ b/.github/PULL_REQUEST_TEMPLATE.md
+@@ -1,5 +1,5 @@
+ ##### ISSUE TYPE
+-<!--- Please pick one and delete the rest: -->
++<!--- Pick one below and delete the rest: -->
+  - New plugin pull-request
+  - Feature pull-request
+  - Bugfix pull-request
+@@ -7,14 +7,18 @@
+ 
+ ##### DSTAT VERSION
+ ```
+-<!--- Paste verbatim output from “ansible --version” here -->
++<!--- Paste verbatim output from “dstat --version” here -->
+ ```
+ 
+ ##### SUMMARY
+-<!--- Please describe the change and the reason for it -->
++<!--- Describe the change here, including rationale and design decisions -->
+ 
+ <!---
+ If you are fixing an existing issue, please include "Fixes #nnn" in your
+ commit message and your description; but you should still explain what
+ the change does.
+ -->
++
++```
++<!--- Paste verbatim command output here, e.g. before and after your change -->
++```
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..7e99e36
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1 @@
++*.pyc
+\ No newline at end of file
+diff --git a/.travis.yml b/.travis.yml
+index d9dc657..b541ef5 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -1,26 +1,32 @@
+-dist: trusty
+-sudo: required
+-services:
+-  - docker
++sudo: false
+ language: python
+-matrix:
+-  include:
+-    - python: 2.6
+-    - python: 2.7
+-    - python: 3.4
+-    - python: 3.5
++python:
++ - "2.7"
++addons:
++  apt:
++    sources:
++      - deadsnakes
++    packages:
++      - python2.4
++      - python2.6
++#      - python3.4
++#      - python3.5
+ #install:
+ #  - pip install dbus-python
+ #  - pip install python-utmp
+ script:
+-  - make test
+-after_success:
+-  - coveralls
+-#notifications:
+-#  irc:
+-#    channels:
+-#      - "chat.freenode.net#ansible-notices"
+-#    on_success: change
+-#    on_failure: always
+-#    skip_join: true
+-#    nick: ansibletravis
+\ No newline at end of file
++  - python2.4 ./dstat --version
++  - python2.4 ./dstat -taf 1 5
++#  - python2.4 ./dstat -t --all-plugins 1 5
++  - python2.6 ./dstat --version
++  - python2.6 ./dstat -taf 1 5
++  - python2.6 ./dstat -t --all-plugins 1 5
++  - python2.7 ./dstat --version
++  - python2.7 ./dstat -taf 1 5
++  - python2.7 ./dstat -t --all-plugins 1 5
++#  - python3.4 ./dstat --version
++#  - python3.4 ./dstat -taf 1 5
++#  - python3.4 ./dstat -t --all-plugins 1 5
++#  - python3.5 ./dstat --version
++#  - python3.5 ./dstat -taf 1 5
++#  - python3.5 ./dstat -t --all-plugins 1 5
+\ No newline at end of file
+diff --git a/Makefile b/Makefile
+index 3847156..d9179f1 100644
+--- a/Makefile
++++ b/Makefile
+@@ -50,3 +50,6 @@ rpm: dist
+ 
+ srpm: dist
+ 	rpmbuild -ts --clean --rmspec --define "_rpmfilename %%{NAME}-%%{VERSION}-%%{RELEASE}.%%{ARCH}.rpm" --define "_srcrpmdir ../" ../$(name)-$(version).tar.bz2
++
++snap:
++	cd packaging/snap/; snapcraft
+diff --git a/README.md b/README.md
+deleted file mode 100644
+index 596202f..0000000
+--- a/README.md
++++ /dev/null
+@@ -1,19 +0,0 @@
+-#DSTAT#
+-
+-Dstat is a versatile replacement for vmstat, iostat, mpstat, netstat and ifstat. Dstat overcomes some of their limitations and while also adding extra features, more counters and flexibility. Dstat is handy for monitoring systems during performance tuning tests, benchmarks or troubleshooting.
+-
+-Dstat allows you to view all of your system resources instantly. For example you can compare disk usage in combination with interrupts from your IDE controller, or compare network bandwidth directly with disk throughput.
+-
+-Dstat gives you detailed selective information in columns and clearly indicates the magnitude and unit the output is displayed. Less confusion, less mistakes.
+-
+-Dstat is unique in letting you aggregate block device throughput for a certain diskset or networkset. This allows you to see the throughput for all the block devices that make up a single filesystem or storage system.
+-
+-Dstat is extensible! You can write your own Dstat plugins to monitor whatever you like in just a few minutes based on provided examples and a little bit of Python knowledge.
+-
+-Dstat's output by default is designed for human consumption in real-time. Dstat also allows CSV output so you to archive historical data in a file to be imported later into a spreadsheet. This is useful for generating graphs.
+-
+-Since it's practically impossible to test dstat on every possible permutation of kernel, python or distribution version, we need your help and feedback in testing.
+-
+-If you have improvements or bug reports, please send them to:
+-
+-    http://github.com/dagwieers/dstat
+diff --git a/docs/dstat.1.adoc b/docs/dstat.1.adoc
+index 245ee4d..24c4a54 100644
+--- a/docs/dstat.1.adoc
++++ b/docs/dstat.1.adoc
+@@ -142,7 +142,7 @@ information.
+ --zones::
+     enable zoneinfo stats (d32F, d32H, normF, normH)
+ 
+---plugin-name::
++--<plugin-name>::
+     enable (external) plugins by plugin name, see *PLUGINS* for options
+ 
+ Possible internal stats are::
+diff --git a/docs/dstat.1.html b/docs/dstat.1.html
+index 996a2ef..8e96431 100644
+--- a/docs/dstat.1.html
++++ b/docs/dstat.1.html
+@@ -1053,7 +1053,7 @@ information.</td>
+ </p>
+ </dd>
+ <dt class="hdlist1">
+---plugin-name
++--&lt;plugin-name&gt;
+ </dt>
+ <dd>
+ <p>
+diff --git a/dstat b/dstat
+index 3ac7087..4fafbb2 100755
+--- a/dstat
++++ b/dstat
+@@ -39,7 +39,7 @@ except NameError:
+     False = 0
+ 
+ ### Workaround for python < 2.3
+-#if 'enumerate' not in __builtins__.__dict__.keys():
++#if 'enumerate' not in __builtins__.__dict__:
+ if sys.version_info >= (2, 2) and sys.version_info < (2, 3):
+     def enumerate(sequence):
+         index = 0
+@@ -56,7 +56,7 @@ elif sys.version_info < (2, 2):
+         return seqlist
+ 
+ ### Workaround for python < 2.3
+-#if 'sum' not in __builtins__.__dict__.keys():
++#if 'sum' not in __builtins__.__dict__:
+ if sys.version_info < (2, 3):
+     def sum(sequence):
+         ret = 0
+@@ -307,7 +307,7 @@ Dstat options:
+   --zones                  enable zoneinfo stats
+ 
+   --list                   list all available plugins
+-  --plugin                 enable external plugin by name (see --list)
++  --<plugin-name>          enable external plugin by name (see --list)
+ 
+   -a, --all                equals -cdngy (default)
+   -f, --full               automatically expand -C, -D, -I, -N and -S lists
+@@ -831,7 +831,7 @@ class dstat_disk(dstat):
+ #           if len(varlist) > 2: varlist = varlist[0:2]
+             varlist.sort()
+         for name in varlist:
+-            if name in self.discover + ['total'] + op.diskset.keys():
++            if name in self.discover + ['total'] or name in op.diskset:
+                 ret.append(name)
+         return ret
+ 
+@@ -850,12 +850,12 @@ class dstat_disk(dstat):
+             if name in self.vars and name != 'total':
+                 self.set2[name] = ( self.set2[name][0] + long(l[5]), self.set2[name][1] + long(l[9]) )
+             for diskset in self.vars:
+-                if diskset in op.diskset.keys():
++                if diskset in op.diskset:
+                     for disk in op.diskset[diskset]:
+                         if fnmatch.fnmatch(name, disk):
+                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[5]), self.set2[diskset][1] + long(l[9]) )
+ 
+-        for name in self.set2.keys():
++        for name in self.set2:
+             self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
+ 
+         if step == op.delay:
+@@ -917,7 +917,7 @@ class dstat_disk24(dstat):
+ #           if len(varlist) > 2: varlist = varlist[0:2]
+             varlist.sort()
+         for name in varlist:
+-            if name in self.discover + ['total'] + op.diskset.keys():
++            if name in self.discover + ['total'] or name in op.diskset:
+                 ret.append(name)
+         return ret
+ 
+@@ -934,12 +934,12 @@ class dstat_disk24(dstat):
+             if name in self.vars:
+                 self.set2[name] = ( self.set2[name][0] + long(l[6]), self.set2[name][1] + long(l[10]) )
+             for diskset in self.vars:
+-                if diskset in op.diskset.keys():
++                if diskset in op.diskset:
+                     for disk in op.diskset[diskset]:
+                         if fnmatch.fnmatch(name, disk):
+                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[6]), self.set2[diskset][1] + long(l[10]) )
+ 
+-        for name in self.set2.keys():
++        for name in self.set2:
+             self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
+ 
+         if step == op.delay:
+@@ -988,7 +988,7 @@ class dstat_disk24_old(dstat):
+ #           if len(varlist) > 2: varlist = varlist[0:2]
+             varlist.sort()
+         for name in varlist:
+-            if name in self.discover + ['total'] + op.diskset.keys():
++            if name in self.discover + ['total'] or name in op.diskset:
+                 ret.append(name)
+         return ret
+ 
+@@ -1012,13 +1012,13 @@ class dstat_disk24_old(dstat):
+                 if name in self.vars and name != 'total':
+                     self.set2[name] = ( self.set2[name][0] + long(l[2]), self.set2[name][1] + long(l[3]) )
+                 for diskset in self.vars:
+-                    if diskset in op.diskset.keys():
++                    if diskset in op.diskset:
+                         for disk in op.diskset[diskset]:
+                             if fnmatch.fnmatch(name, disk):
+                                 self.set2[diskset] = ( self.set2[diskset][0] + long(l[2]), self.set2[diskset][1] + long(l[3]) )
+             break
+ 
+-        for name in self.set2.keys():
++        for name in self.set2:
+             self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
+ 
+         if step == op.delay:
+@@ -1106,7 +1106,7 @@ class dstat_int(dstat):
+         for name in varlist:
+             if name in self.discover + ['total',]:
+                 ret.append(name)
+-            elif name.lower() in self.intmap.keys():
++            elif name.lower() in self.intmap:
+                 ret.append(self.intmap[name.lower()])
+         return ret
+ 
+@@ -1173,7 +1173,7 @@ class dstat_int24(dstat):
+         for name in varlist:
+             if name in self.discover:
+                 ret.append(name)
+-            elif name.lower() in self.intmap.keys():
++            elif name.lower() in self.intmap:
+                 ret.append(self.intmap[name.lower()])
+         return ret
+ 
+@@ -1190,7 +1190,7 @@ class dstat_int24(dstat):
+ #                   for mod in l[2+cpunr:]:
+ #                       self.set2[mod] = long(l[1])
+ 
+-        for name in self.set2.keys():
++        for name in self.set2:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+ 
+         if step == op.delay:
+@@ -1233,7 +1233,7 @@ class dstat_io(dstat):
+ #           if len(varlist) > 2: varlist = varlist[0:2]
+             varlist.sort()
+         for name in varlist:
+-            if name in self.discover + ['total'] + op.diskset.keys():
++            if name in self.discover + ['total'] or name in op.diskset:
+                 ret.append(name)
+         return ret
+ 
+@@ -1252,12 +1252,12 @@ class dstat_io(dstat):
+             if name in self.vars and name != 'total':
+                 self.set2[name] = ( self.set2[name][0] + long(l[3]), self.set2[name][1] + long(l[7]) )
+             for diskset in self.vars:
+-                if diskset in op.diskset.keys():
++                if diskset in op.diskset:
+                     for disk in op.diskset[diskset]:
+                         if fnmatch.fnmatch(name, disk):
+                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
+ 
+-        for name in self.set2.keys():
++        for name in self.set2:
+             self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
+ 
+         if step == op.delay:
+@@ -1396,7 +1396,7 @@ class dstat_net(dstat):
+                 self.set2['total'] = ( self.set2['total'][0] + long(l[1]), self.set2['total'][1] + long(l[9]))
+ 
+         if update:
+-            for name in self.set2.keys():
++            for name in self.set2:
+                 self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
+                 if self.val[name][0] < 0: self.val[name][0] += maxint + 1
+                 if self.val[name][1] < 0: self.val[name][1] += maxint + 1
+@@ -1485,8 +1485,8 @@ class dstat_raw(dstat):
+         self.nick = ('raw',)
+         self.vars = ('sockets',)
+         self.type = 'd'
+-        self.width = 3
+-        self.scale = 100
++        self.width = 4
++        self.scale = 1000
+         self.open('/proc/net/raw')
+ 
+     def extract(self):
+@@ -1501,8 +1501,8 @@ class dstat_socket(dstat):
+     def __init__(self):
+         self.name = 'sockets'
+         self.type = 'd'
+-        self.width = 3
+-        self.scale = 100
++        self.width = 4
++        self.scale = 1000
+         self.open('/proc/net/sockstat')
+         self.nick = ('tot', 'tcp', 'udp', 'raw', 'frg')
+         self.vars = ('sockets:', 'TCP:', 'UDP:', 'RAW:', 'FRAG:')
+@@ -1612,7 +1612,7 @@ class dstat_tcp(dstat):
+         self.vars = ('listen', 'established', 'syn', 'wait', 'close')
+         self.type = 'd'
+         self.width = 4
+-        self.scale = 100
++        self.scale = 1000
+         self.open('/proc/net/tcp', '/proc/net/tcp6')
+ 
+     def extract(self):
+@@ -1653,8 +1653,8 @@ class dstat_udp(dstat):
+         self.nick = ('lis', 'act')
+         self.vars = ('listen', 'established')
+         self.type = 'd'
+-        self.width = 3
+-        self.scale = 100
++        self.width = 4
++        self.scale = 1000
+         self.open('/proc/net/udp', '/proc/net/udp6')
+ 
+     def extract(self):
+@@ -1669,8 +1669,8 @@ class dstat_unix(dstat):
+         self.nick = ('dgm', 'str', 'lis', 'act')
+         self.vars = ('datagram', 'stream', 'listen', 'established')
+         self.type = 'd'
+-        self.width = 3
+-        self.scale = 100
++        self.width = 4
++        self.scale = 1000
+         self.open('/proc/net/unix')
+ 
+     def extract(self):
+@@ -1786,10 +1786,10 @@ ansi = {
+     'clear': '\033[2J',
+ #   'clearline': '\033[K',
+     'clearline': '\033[2K',
+-#   'save': '\033[s',
+-#   'restore': '\033[u',
+-    'save': '\0337',
+-    'restore': '\0338',
++    'save': '\033[s',
++    'restore': '\033[u',
++    'save_all': '\0337',
++    'restore_all': '\0338',
+     'linewrap': '\033[7h',
+     'nolinewrap': '\033[7l',
+ 
+@@ -1886,9 +1886,9 @@ def dopen(filename):
+     if not os.path.exists(filename):
+         raise Exception, 'File %s does not exist' % filename
+ #        return None
+-    if 'fds' not in globals().keys():
++    if 'fds' not in globals():
+         fds = {}
+-    if file not in fds.keys():
++    if file not in fds:
+         fds[filename] = open(filename, 'r', 0)
+     else:
+         fds[filename].seek(0)
+@@ -1897,7 +1897,7 @@ def dopen(filename):
+ def dclose(filename):
+     "Close an open file and remove file descriptor from list"
+     global fds
+-    if not 'fds' in globals().keys(): fds = {}
++    if not 'fds' in globals(): fds = {}
+     if filename in fds:
+         fds[filename].close()
+         del(fds[filename])
+@@ -1906,8 +1906,8 @@ def dpopen(cmd):
+     "Open a pipe for reuse, if already opened, return pipes"
+     global pipes, select
+     import select
+-    if 'pipes' not in globals().keys(): pipes = {}
+-    if cmd not in pipes.keys():
++    if 'pipes' not in globals(): pipes = {}
++    if cmd not in pipes:
+         try:
+             import asubprocess
+             p = subprocess.Popen(cmd, shell=True, bufsize=0, close_fds=True,
+@@ -2550,9 +2550,6 @@ def main():
+     user = getpass.getuser()
+     hostname = os.uname()[1]
+ 
+-    ### Disable line-wrapping (does not work ?)
+-    sys.stdout.write('\033[7l')
+-
+     ### Write term-title
+     if sys.stdout.isatty():
+         shell = os.getenv('XTERM_SHELL')
+@@ -2604,14 +2601,19 @@ def main():
+ 
+     ### Empty ansi and theme database if no colors are requested
+     if not op.color:
+-        for key in color.keys():
++        for key in color:
+             color[key] = ''
+-        for key in theme.keys():
++        for key in theme:
+             theme[key] = ''
++        for key in ansi:
++            ansi[key] = ''
+         theme['colors_hi'] = (ansi['default'],)
+         theme['colors_lo'] = (ansi['default'],)
+ #        print color['blackbg']
+ 
++    ### Disable line-wrapping (does not work ?)
++    sys.stdout.write(ansi['nolinewrap'])
++
+     if not op.update:
+         interval = op.delay
+ 
+@@ -2631,7 +2633,7 @@ def main():
+         for mod in mods:
+             pluginfile = 'dstat_' + mod.replace('-', '_')
+             try:
+-                if pluginfile not in globals().keys():
++                if pluginfile not in globals():
+                     import imp
+                     fp, pathname, description = imp.find_module(pluginfile, pluginpath)
+                     fp.close()
+@@ -2761,7 +2763,9 @@ def perform(update):
+             if op.header and rows >= 6:
+                 if oldvislist != vislist:
+                     showheader = True
+-                elif step == 1 and loop % (rows - 1) == 0:
++                elif not op.update and loop % (rows - 2) == 0:
++                    showheader = True
++                elif op.update and step == 1 and loop % (rows - 1) == 0:
+                     showheader = True
+ 
+             oldvislist = vislist
+diff --git a/dstat.spec b/packaging/rpm/dstat.spec
+similarity index 100%
+rename from dstat.spec
+rename to packaging/rpm/dstat.spec
+diff --git a/packaging/snap/python2 b/packaging/snap/python2
+new file mode 120000
+index 0000000..8f7a3c1
+--- /dev/null
++++ b/packaging/snap/python2
+@@ -0,0 +1 @@
++python2.7
+\ No newline at end of file
+diff --git a/packaging/snap/snapcraft.yaml b/packaging/snap/snapcraft.yaml
+new file mode 100644
+index 0000000..14e4cd8
+--- /dev/null
++++ b/packaging/snap/snapcraft.yaml
+@@ -0,0 +1,29 @@
++name: dstat
++version: 0.7.3
++summary: Versatile resource statistic tool 
++description: dstat is a versatile replacement for vmstat, iostat, and ifstat.
++confinement: strict
++
++apps:
++  dstat:
++    command: usr/bin/dstat
++    plugs: [home, system-observe]
++parts:
++  dstat:
++    plugin: make 
++    source: https://github.com/dagwieers/dstat/archive/0.7.3.tar.gz 
++    build-packages: [gcc, libc6-dev]
++    stage-packages: [python2.7]
++
++  python2-symlink:
++    plugin: copy
++    files: 
++      python2: usr/bin/
++    snap:
++      - -usr/lib/gcc
++      - -usr/lib/mime
++      - -usr/lib/x86_64-linux-gnu
++      - -lib/x86_64-linux-gnu
++      - usr/bin/python2
++      - usr/bin/python2.7
++      - usr/bin/dstat
+diff --git a/plugins/dstat_disk_tps.py b/plugins/dstat_disk_tps.py
+index b6d3e7e..d747a99 100644
+--- a/plugins/dstat_disk_tps.py
++++ b/plugins/dstat_disk_tps.py
+@@ -43,7 +43,7 @@ class dstat_plugin(dstat):
+ #           if len(varlist) > 2: varlist = varlist[0:2]
+             varlist.sort()
+         for name in varlist:
+-            if name in self.discover + ['total'] + op.diskset.keys():
++            if name in self.discover + ['total'] or name in op.diskset:
+                 ret.append(name)
+         return ret
+ 
+@@ -62,12 +62,12 @@ class dstat_plugin(dstat):
+             if name in self.vars and name != 'total':
+                 self.set2[name] = ( self.set2[name][0] + long(l[3]), self.set2[name][1] + long(l[7]))
+             for diskset in self.vars:
+-                if diskset in op.diskset.keys():
++                if diskset in op.diskset:
+                     for disk in op.diskset[diskset]:
+                         if re.match('^'+disk+'$', name):
+                             self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
+ 
+-        for name in self.set2.keys():
++        for name in self.set2:
+             self.val[name] = map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name])
+ 
+         if step == op.delay:
+diff --git a/plugins/dstat_ib.py b/plugins/dstat_ib.py
+new file mode 100644
+index 0000000..d8db17b
+--- /dev/null
++++ b/plugins/dstat_ib.py
+@@ -0,0 +1,83 @@
++### Author: Dmitry Fedin <dmitry.fedin@gmail.com>
++
++
++class dstat_plugin(dstat):
++    ibdirname = '/sys/class/infiniband'
++    """
++    Bytes received or sent through infiniband/RoCE interfaces
++    Usage:
++        dstat --ib -N <adapter name>:<port>,total
++        default dstat --ib is the same as
++        dstat --ib -N total
++
++        example for Mellanox adapter, transfering data via port 2
++        dstat --ib -Nmlx4_0:2
++    """
++
++    def __init__(self):
++        self.nick = ('recv', 'send')
++        self.type = 'd'
++        self.cols = 2
++        self.width = 6
++
++    def discover(self, *objlist):
++        ret = []
++        for subdirname in os.listdir(self.ibdirname):
++            if not os.path.isdir(os.path.join(self.ibdirname,subdirname)) : continue
++            device_dir =  os.path.join(self.ibdirname, subdirname, 'ports')
++            for subdirname2 in os.listdir(device_dir) :
++                if not os.path.isdir(os.path.join(device_dir,subdirname2)): continue
++                name = subdirname + ":" + subdirname2
++                ret.append(name)
++        ret.sort()
++        for item in objlist: ret.append(item)
++        return ret
++
++    def vars(self):
++        ret = []
++        if op.netlist:
++            varlist = op.netlist
++        elif not op.full:
++            varlist = ('total',)
++        else:
++            varlist = self.discover
++            varlist.sort()
++        for name in varlist:
++            if name in self.discover + ['total']:
++                ret.append(name)
++        if not ret:
++            raise Exception, "No suitable network interfaces found to monitor"
++        return ret
++
++    def name(self):
++        return ['ib/'+name for name in self.vars]
++
++    def extract(self):
++        self.set2['total'] = [0, 0]
++        ifaces = self.discover
++        for name in self.vars: self.set2[name] = [0, 0]
++        for name in ifaces:
++            l=name.split(':');
++            if len(l) < 2:
++                 continue
++            rcv_counter_name=os.path.join('/sys/class/infiniband', l[0], 'ports', l[1], 'counters_ext/port_rcv_data_64')
++            xmit_counter_name=os.path.join('/sys/class/infiniband', l[0], 'ports', l[1], 'counters_ext/port_xmit_data_64')
++            rcv_lines = dopen(rcv_counter_name).readlines()
++            xmit_lines = dopen(xmit_counter_name).readlines()
++            if len(rcv_lines) < 1 or len(xmit_lines) < 1:
++                continue
++            rcv_value = long(rcv_lines[0])
++            xmit_value = long(xmit_lines[0])
++            if name in self.vars :
++                self.set2[name] = (rcv_value, xmit_value)
++            self.set2['total'] = ( self.set2['total'][0] + rcv_value, self.set2['total'][1] + xmit_value)
++        if update:
++            for name in self.set2:
++                self.val[name] = [
++                    (self.set2[name][0] - self.set1[name][0]) * 4.0 / elapsed,
++                    (self.set2[name][1] - self.set1[name][1]) * 4.0/ elapsed,
++                ]
++                if self.val[name][0] < 0: self.val[name][0] += maxint + 1
++                if self.val[name][1] < 0: self.val[name][1] += maxint + 1
++        if step == op.delay:
++            self.set1.update(self.set2)
+diff --git a/plugins/dstat_jvm_full.py b/plugins/dstat_jvm_full.py
+new file mode 100644
+index 0000000..2afa9da
+--- /dev/null
++++ b/plugins/dstat_jvm_full.py
+@@ -0,0 +1,125 @@
++# Author: Roberto Polli <rpolli@redhat.com>
++#
++# NOTE: Edit the jcmd location according to your path or use update-alternatives.
++global BIN_JCMD
++BIN_JCMD = '/usr/bin/jcmd'
++
++
++class dstat_plugin(dstat):
++    """
++    This plugin gathers jvm stats via jcmd.
++
++    Usage:
++       JVM_PID=15123 dstat --jvm-full 
++
++    Minimize the impacts of jcmd and consider using:
++
++        dstat --noupdate
++
++    For full informations on jcmd see:
++
++      - http://docs.oracle.com/javase/7/docs/technotes/tools/solaris/jcmd.html
++      - https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/tooldescr006.html
++
++    This requires the presence of /tmp/hsperfdata_* directory, so
++     it WON'T WORK if you add -XX:-UsePerfData or -XX:+PerfDisableSharedMem.
++
++    """
++
++    def __init__(self):
++        self.name = 'jvm_full'
++        self.vars = ('clsL', 'clsU', 'fgc', 'heap', 'heap%',
++                     'heapmax', 'perm', 'perm%', 'permmax')
++        self.type = 'f'
++        self.width = 5
++        self.scale = 1000
++
++    def check(self):
++        """Preliminar checks. If no pid is passed, defaults to 0.
++        """
++        if not os.access(BIN_JCMD, os.X_OK):
++            raise Exception('Needs jstat binary')
++
++        try:
++            self.jvm_pid = int(os.environ.get('JVM_PID',0))
++        except Exception as e:
++            self.jvm_pid = 0
++
++        return True
++
++    @staticmethod
++    def _to_stat(k, v):
++        try:
++            return k, int(v)
++        except (KeyError, ValueError, AttributeError):
++            return k, v
++
++    @staticmethod
++    def _cmd_splitlines(cmd):
++        """Splits a txt output of lines like key=value.
++        """
++        for l in os.popen(cmd):
++            yield l.strip().split("=", 1)
++
++    def extract(self):
++        try:
++            lines = self._cmd_splitlines(
++                '%s %s PerfCounter.print ' % (BIN_JCMD, self.jvm_pid))
++            table = dict(self._to_stat(*l) for l in lines
++                         if len(l) > 1)
++            if table:
++                # Number of loaded classes.
++                self.set2['clsL'] = table['java.cls.loadedClasses']
++                self.set2['clsU'] = table['java.cls.unloadedClasses']
++                # Number of Full Garbage Collection events.
++                self.set2['fgc'] = table['sun.gc.collector.1.invocations']
++                # The heap space is made up of Old Generation and Young
++                # Generation (which is divided in Eden, Survivor0 and
++                # Survivor1)
++                self.set2['heap'] = table['sun.gc.generation.1.capacity'] + table[
++                    'sun.gc.generation.0.capacity']
++                # Usage is hidden in the nested spaces.
++                self.set2['heapu'] = sum(table[k] for k in table
++                                         if 'sun.gc.generation.' in k
++                                         and 'used' in k)
++                self.set2['heapmax'] = table['sun.gc.generation.1.maxCapacity'] + table[
++                    'sun.gc.generation.0.maxCapacity']
++
++                # Use PermGen on jdk7 and the new metaspace on jdk8
++                try:
++                    self.set2['perm'] = table['sun.gc.generation.2.capacity']
++                    self.set2['permu'] = sum(table[k] for k in table
++                                             if 'sun.gc.generation.2.' in k
++                                             and 'used' in k)
++                    self.set2['permmax'] = table[
++                        'sun.gc.generation.2.maxCapacity']
++                except KeyError:
++                    self.set2['perm'] = table['sun.gc.metaspace.capacity']
++                    self.set2['permu'] = table['sun.gc.metaspace.used']
++                    self.set2['permmax'] = table[
++                        'sun.gc.metaspace.maxCapacity']
++
++            # Evaluate statistics on memory usage.
++            for name in ('heap', 'perm'):
++                self.set2[name + '%'] = 100 * self.set2[
++                    name + 'u'] / self.set2[name]
++
++            for name in self.vars:
++                self.val[name] = self.set2[name]
++
++            if step == op.delay:
++                self.set1.update(self.set2)
++
++        except IOError, e:
++            if op.debug > 1:
++                print '%s: lost pipe to jstat, %s' % (self.filename, e)
++            for name in self.vars:
++                self.val[name] = -1
++
++        except Exception, e:
++            if op.debug > 1:
++                print '%s: exception' % e
++            for name in self.vars:
++                self.val[name] = -1
++
++# vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_jvm_vm.py b/plugins/dstat_jvm_vm.py
+new file mode 100644
+index 0000000..7d7f08a
+--- /dev/null
++++ b/plugins/dstat_jvm_vm.py
+@@ -0,0 +1,87 @@
++# Author: Roberto Polli <rpolli@redhat.com>
++#
++# This plugin shows jvm stats using the JVM_PID environment variable.
++# Requires the presence of the /tmp/hsperfdata_* directory and
++#  files created when running java with the profiler enabled.
++#
++
++
++class dstat_plugin(dstat):
++
++    def __init__(self):
++        self.name = 'jvm mem ops '
++        self.vars = ('fgc', 'heap', 'heap%', 'perm', 'perm%')
++        self.type = 'f'
++        self.width = 5
++        self.scale = 1000
++
++    def check(self):
++        if not os.access('/usr/bin/jstat', os.X_OK):
++            raise Exception('Needs jstat binary')
++        try:
++            self.jvm_pid = int(os.environ.get('JVM_PID', 0))
++        except Exception:
++            self.jvm_pid = 0
++
++        return True
++
++    @staticmethod
++    def _to_float(s):
++        return float(s.replace(",", "."))
++
++    @staticmethod
++    def _cmd_splitlines(cmd):
++        for l in os.popen(cmd):
++            yield l.strip().split()
++
++    def extract(self):
++        from collections import namedtuple
++        try:
++            lines = self._cmd_splitlines(
++                '/usr/bin/jstat -gc %s' % self.jvm_pid)
++            headers = next(lines)
++            DStatParser = namedtuple('DStatParser', headers)
++            line = next(lines)
++            if line:
++                stats = DStatParser(*[self._to_float(x) for x in line])
++                # print stats
++                self.set2['cls'] = 0
++                self.set2['fgc'] = int(stats.FGC)
++                self.set2['heap'] = (
++                    stats.S0C + stats.S1C + stats.EC + stats.OC)
++                self.set2['heapu'] = (
++                    stats.S0U + stats.S1U + stats.EU + stats.OU)
++
++                # Use MetaSpace on jdk8
++                try:
++                    self.set2['perm'] = stats.PC
++                    self.set2['permu'] = stats.PU
++                except AttributeError:
++                    self.set2['perm'] = stats.MC
++                    self.set2['permu'] = stats.MU
++
++            # Evaluate statistics on memory usage.
++            for name in ('heap', 'perm'):
++                self.set2[name + '%'] = 100 * self.set2[
++                    name + 'u'] / self.set2[name]
++                self.set2[name] /= 1024
++
++            for name in self.vars:
++                self.val[name] = self.set2[name]
++
++            if step == op.delay:
++                self.set1.update(self.set2)
++
++        except IOError, e:
++            if op.debug > 1:
++                print '%s: lost pipe to jstat, %s' % (self.filename, e)
++            for name in self.vars:
++                self.val[name] = -1
++
++        except Exception, e:
++            if op.debug > 1:
++                print '%s: exception' % e
++            for name in self.vars:
++                self.val[name] = -1
++
++# vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_lustre.py b/plugins/dstat_lustre.py
+index 04f7969..d19861b 100644
+--- a/plugins/dstat_lustre.py
++++ b/plugins/dstat_lustre.py
+@@ -3,6 +3,7 @@
+ class dstat_plugin(dstat):
+     def __init__(self):
+         self.nick = ('read', 'write')
++        self.cols = 2 
+ 
+     def check(self):
+         if not os.path.exists('/proc/fs/lustre/llite'):
+@@ -17,7 +18,8 @@ class dstat_plugin(dstat):
+ 
+     def extract(self):
+         for name in self.vars:
+-            for l in open(os.path.join('/proc/fs/lustre/llite', name, 'stats')).splitlines():
++            for line in dopen(os.path.join('/proc/fs/lustre/llite', name, 'stats')).readlines():
++                l = line.split()
+                 if len(l) < 6: continue
+                 if l[0] == 'read_bytes':
+                     read = long(l[6])
+diff --git a/plugins/dstat_mongodb_conn.py b/plugins/dstat_mongodb_conn.py
+new file mode 100644
+index 0000000..d4f7ef6
+--- /dev/null
++++ b/plugins/dstat_mongodb_conn.py
+@@ -0,0 +1,48 @@
++### Author: <gianfranco@mongodb.com>
++
++global mongodb_user
++mongodb_user = os.getenv('DSTAT_MONGODB_USER') or os.getenv('USER')
++
++global mongodb_pwd
++mongodb_pwd = os.getenv('DSTAT_MONGODB_PWD')
++
++global mongodb_host
++mongodb_host = os.getenv('DSTAT_MONGODB_HOST') or '127.0.0.1:27017'
++
++class dstat_plugin(dstat):
++  """
++  Plugin for MongoDB.
++  """
++  def __init__(self):
++    global pymongo
++    import pymongo
++
++    try:
++      self.m = pymongo.MongoClient(mongodb_host)
++      if mongodb_pwd:
++        self.m.admin.authenticate(mongodb_user, mongodb_pwd)
++      self.db = self.m.admin
++    except Exception, e:
++      raise Exception, 'Cannot interface with MongoDB server: %s' % e
++
++    self.name    = 'mongodb con'
++    self.nick    = ('curr', 'avail')
++    self.vars    = ('connections.current', 'connections.available')
++    self.type    = 'd'
++    self.width   = 5
++    self.scale   = 2
++    self.lastVal = {}
++
++  def extract(self):
++    status = self.db.command("serverStatus")
++
++    for name in self.vars:
++      self.val[name] = (long(self.getDoc(status, name)))
++
++  def getDoc(self, dic, doc):
++    par = doc.split('.')
++    sdic = dic
++    for p in par:
++      sdic = sdic.get(p)
++
++    return sdic
+diff --git a/plugins/dstat_mongodb_mem.py b/plugins/dstat_mongodb_mem.py
+new file mode 100644
+index 0000000..8ea19d2
+--- /dev/null
++++ b/plugins/dstat_mongodb_mem.py
+@@ -0,0 +1,67 @@
++### Author: <gianfranco@mongodb.com>
++
++global mongodb_user
++mongodb_user = os.getenv('DSTAT_MONGODB_USER') or os.getenv('USER')
++
++global mongodb_pwd
++mongodb_pwd = os.getenv('DSTAT_MONGODB_PWD')
++
++global mongodb_host
++mongodb_host = os.getenv('DSTAT_MONGODB_HOST') or '127.0.0.1:27017'
++
++class dstat_plugin(dstat):
++  """
++  Plugin for MongoDB.
++  """
++  def __init__(self):
++    global pymongo
++    import pymongo
++
++    try:
++      self.m = pymongo.MongoClient(mongodb_host)
++      if mongodb_pwd:
++        self.m.admin.authenticate(mongodb_user, mongodb_pwd)
++      self.db = self.m.admin
++    except Exception, e:
++      raise Exception, 'Cannot interface with MongoDB server: %s' % e
++
++    line = self.db.command("serverStatus")
++    if 'storageEngine' in line:
++      self.storageEngine = line.get('storageEngine').get('name')
++    else:
++      self.storageEngine = 'mmapv1'
++
++    self.name    = 'mongodb mem'
++    self.nick    = ('res', 'virt')
++    self.vars    = ('mem.resident', 'mem.virtual')
++    self.type    = 'd'
++    self.width   = 5
++    self.scale   = 2
++    self.lastVal = {}
++
++    if self.storageEngine == 'mmapv1':
++      self.nick = self.nick + ('map', 'mapj', 'flt')
++      self.vars = self.vars + ('mem.mapped', 'mem.mappedWithJournal', 'extra_info.page_faults')
++
++
++  def extract(self):
++    status = self.db.command("serverStatus")
++
++    for name in self.vars:
++      if name in ('extra_info.page_faults'):
++        if not name in self.lastVal:
++          self.lastVal[name] = long(self.getDoc(status, name))
++        self.val[name] = (long(self.getDoc(status, name)) - self.lastVal[name])
++        self.lastVal[name] = self.getDoc(status, name)
++      else:
++        self.val[name] = (long(self.getDoc(status, name)))
++
++
++
++  def getDoc(self, dic, doc):
++    par = doc.split('.')
++    sdic = dic
++    for p in par:
++      sdic = sdic.get(p)
++
++    return sdic
+diff --git a/plugins/dstat_mongodb_opcount.py b/plugins/dstat_mongodb_opcount.py
+new file mode 100644
+index 0000000..1e5e1c3
+--- /dev/null
++++ b/plugins/dstat_mongodb_opcount.py
+@@ -0,0 +1,46 @@
++### Author: <gianfranco@mongodb.com>
++
++global mongodb_user
++mongodb_user = os.getenv('DSTAT_MONGODB_USER') or os.getenv('USER')
++
++global mongodb_pwd
++mongodb_pwd = os.getenv('DSTAT_MONGODB_PWD')
++
++global mongodb_host
++mongodb_host = os.getenv('DSTAT_MONGODB_HOST') or '127.0.0.1:27017'
++
++class dstat_plugin(dstat):
++  """
++  Plugin for MongoDB.
++  """
++  def __init__(self):
++    global pymongo
++    import pymongo
++
++    try:
++      self.m = pymongo.MongoClient(mongodb_host)
++      if mongodb_pwd:
++        self.m.admin.authenticate(mongodb_user, mongodb_pwd)
++      self.db = self.m.admin
++    except Exception, e:
++      raise Exception, 'Cannot interface with MongoDB server: %s' % e
++
++    self.name    = 'mongodb counts'
++    self.nick    = ('qry', 'ins', 'upd', 'del', 'gtm', 'cmd')
++    self.vars    = ('query', 'insert','update','delete','getmore','command')
++    self.type    = 'd'
++    self.width   = 5
++    self.scale   = 2
++    self.lastVal = {}
++
++  def extract(self):
++    status = self.db.command("serverStatus")
++    opct = status['opcounters']
++
++    for name in self.vars:
++      if name in opct.iterkeys():
++        if not name in self.lastVal:
++          self.lastVal[name] = opct.get(name)
++
++        self.val[name]     = (long(opct.get(name)) - self.lastVal[name]) / elapsed
++        self.lastVal[name] = opct.get(name)
+diff --git a/plugins/dstat_mongodb_queue.py b/plugins/dstat_mongodb_queue.py
+new file mode 100644
+index 0000000..8fa753b
+--- /dev/null
++++ b/plugins/dstat_mongodb_queue.py
+@@ -0,0 +1,45 @@
++### Author: <gianfranco@mongodb.com>
++
++global mongodb_user
++mongodb_user = os.getenv('DSTAT_MONGODB_USER') or os.getenv('USER')
++
++global mongodb_pwd
++mongodb_pwd = os.getenv('DSTAT_MONGODB_PWD')
++
++global mongodb_host
++mongodb_host = os.getenv('DSTAT_MONGODB_HOST') or '127.0.0.1:27017'
++
++class dstat_plugin(dstat):
++  """
++  Plugin for MongoDB.
++  """
++  def __init__(self):
++    global pymongo
++    import pymongo
++
++    try:
++      self.m = pymongo.MongoClient(mongodb_host)
++      if mongodb_pwd:
++        self.m.admin.authenticate(mongodb_user, mongodb_pwd)
++      self.db = self.m.admin
++    except Exception, e:
++      raise Exception, 'Cannot interface with MongoDB server: %s' % e
++
++    self.name    = 'mongodb queues'
++    self.nick    = ('ar', 'aw', 'qt', 'qw')
++    self.vars    = ('ar', 'aw', 'qt', 'qw')
++    self.type    = 'd'
++    self.width   = 5
++    self.scale   = 2
++    self.lastVal = {}
++
++  def extract(self):
++    status = self.db.command("serverStatus")
++    glock = status['globalLock']
++    alock = glock['activeClients']
++    qlock = glock['currentQueue']
++
++    self.val['ar'] = long(alock['readers'])
++    self.val['aw'] = long(alock['writers'])
++    self.val['qr'] = long(qlock['readers'])
++    self.val['qw'] = long(qlock['writers'])
+diff --git a/plugins/dstat_mongodb_stats.py b/plugins/dstat_mongodb_stats.py
+new file mode 100644
+index 0000000..2429e89
+--- /dev/null
++++ b/plugins/dstat_mongodb_stats.py
+@@ -0,0 +1,71 @@
++### Author: <gianfranco@mongodb.com>
++
++global mongodb_user
++mongodb_user = os.getenv('DSTAT_MONGODB_USER') or os.getenv('USER')
++
++global mongodb_pwd
++mongodb_pwd = os.getenv('DSTAT_MONGODB_PWD')
++
++global mongodb_host
++mongodb_host = os.getenv('DSTAT_MONGODB_HOST') or '127.0.0.1:27017'
++
++class dstat_plugin(dstat):
++  """
++  Plugin for MongoDB.
++  """
++  def __init__(self):
++    global pymongo
++    import pymongo
++
++    try:
++      self.m = pymongo.MongoClient(mongodb_host)
++      if mongodb_pwd:
++        self.m.admin.authenticate(mongodb_user, mongodb_pwd)
++      self.db = self.m.admin
++    except Exception, e:
++      raise Exception, 'Cannot interface with MongoDB server: %s' % e
++
++    stats  = self.db.command("listDatabases")
++    self.dbList = []
++    for db in stats.get('databases'):
++      self.dbList.append(db.get('name'))
++
++    line = self.db.command("serverStatus")
++    if 'storageEngine' in line:
++      self.storageEngine = line.get('storageEngine').get('name')
++    else:
++      self.storageEngine = 'mmapv1'
++
++    self.name    = 'mongodb stats'
++    self.nick    = ('dsize', 'isize', 'ssize')
++    self.vars    = ('dataSize', 'indexSize', 'storageSize')
++    self.type    = 'b'
++    self.width   = 5
++    self.scale   = 2
++    self.count   = 1
++
++    if self.storageEngine == 'mmapv1':
++      self.nick  = self.nick + ('fsize',)
++      self.vars  = self.vars + ('fileSize',)
++
++
++  def extract(self):
++    self.set = {}
++
++    # refresh the database list every 10 iterations
++    if (self.count % 10) == 0:
++      stats  = self.m.admin.command("listDatabases")
++      self.dbList = []
++      for db in stats.get('databases'):
++        self.dbList.append(db.get('name'))
++    self.count += 1
++
++    for name in self.vars:
++      self.set[name] = 0
++
++    for db in self.dbList:
++      self.db = self.m.get_database(db)
++      stats = self.db.command("dbStats")
++      for name in self.vars:
++        self.set[name] += long(stats.get(name)) / (1024 * 1024)
++    self.val = self.set
+diff --git a/plugins/dstat_net_packets.py b/plugins/dstat_net_packets.py
+index 18ffcfe..cd189c0 100644
+--- a/plugins/dstat_net_packets.py
++++ b/plugins/dstat_net_packets.py
+@@ -58,7 +58,7 @@ class dstat_plugin(dstat):
+                 self.set2['total'] = ( self.set2['total'][0] + long(l[2]), self.set2['total'][1] + long(l[10]))
+ 
+         if update:
+-            for name in self.set2.keys():
++            for name in self.set2:
+                 self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
+ 
+         if step == op.delay:
+diff --git a/plugins/dstat_snmp_net.py b/plugins/dstat_snmp_net.py
+index c941bd7..df8287e 100644
+--- a/plugins/dstat_snmp_net.py
++++ b/plugins/dstat_snmp_net.py
+@@ -25,7 +25,7 @@ class dstat_plugin(dstat):
+         map(lambda x, y, z: self.set2.update({x: (int(y), int(z))}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,10)), snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,16)))
+ 
+         if update:
+-            for name in self.set2.keys():
++            for name in self.set2:
+                 self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
+ 
+         if step == op.delay:
+diff --git a/plugins/dstat_snmp_net_err.py b/plugins/dstat_snmp_net_err.py
+index f7afb54..da68484 100644
+--- a/plugins/dstat_snmp_net_err.py
++++ b/plugins/dstat_snmp_net_err.py
+@@ -25,7 +25,7 @@ class dstat_plugin(dstat):
+         map(lambda x, y: self.set2.update({x: (int(y), )}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,20)))
+ 
+         if update:
+-            for name in self.set2.keys():
++            for name in self.set2:
+ #                self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
+                 self.val[name] = map(lambda x, y: (y - x) * 1.0, self.set1[name], self.set2[name])
+ 
+diff --git a/plugins/dstat_thermal.py b/plugins/dstat_thermal.py
+index 6119671..2e82ac5 100644
+--- a/plugins/dstat_thermal.py
++++ b/plugins/dstat_thermal.py
+@@ -7,7 +7,17 @@ class dstat_plugin(dstat):
+         self.width = 3
+         self.scale = 20
+ 
+-        if os.path.exists('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'):
++        if os.path.exists('/sys/devices/virtual/thermal/'):
++            self.nick = []
++            self.vars = []
++            for zone in os.listdir('/sys/devices/virtual/thermal/'):
++                zone_split=zone.split("thermal_zone")
++                if len(zone_split) == 2:
++                    self.vars.append(zone)
++                    name="".join(["tz",zone_split[1]])
++                    self.nick.append(name)
++
++        elif os.path.exists('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'):
+             self.vars = os.listdir('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/')
+             self.nick = []
+             for name in self.vars:
+@@ -31,16 +41,22 @@ class dstat_plugin(dstat):
+                 self.nick.append(name.lower())
+ 
+         else:
+-            raise Exception, 'Needs kernel ACPI or IBM-ACPI support'
++            raise Exception, 'Needs kernel thermal, ACPI or IBM-ACPI support'
+ 
+     def check(self):
+         if not os.path.exists('/proc/acpi/ibm/thermal') and \
+            not os.path.exists('/proc/acpi/thermal_zone/') and \
++           not os.path.exists('/sys/devices/virtual/thermal/') and \
+            not os.path.exists('/sys/bus/acpi/devices/LNXTHERM:00/thermal_zone/'):
+-            raise Exception, 'Needs kernel ACPI or IBM-ACPI support'
++            raise Exception, 'Needs kernel thermal, ACPI or IBM-ACPI support'
+ 
+     def extract(self):
+-        if os.path.exists('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'):
++        if os.path.exists('/sys/devices/virtual/thermal/'):
++            for zone in self.vars:
++                for line in dopen('/sys/devices/virtual/thermal/'+zone+'/temp').readlines():
++                    l = line.split()
++                    self.val[zone] = int(l[0])
++        elif os.path.exists('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'):
+             for zone in self.vars:
+                 if os.path.isdir('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'+zone) == False:
+                     for line in dopen('/sys/bus/acpi/devices/LNXTHERM:01/thermal_zone/'+zone).readlines():
+diff --git a/plugins/dstat_top_int.py b/plugins/dstat_top_int.py
+index 1b26fa4..829cffe 100644
+--- a/plugins/dstat_top_int.py
++++ b/plugins/dstat_top_int.py
+@@ -12,7 +12,7 @@ class dstat_plugin(dstat):
+         self.type = 's'
+         self.width = 20
+         self.scale = 0
+-        self.intset1 = [ 0 ] * 1024
++        self.intset1 = [ ]
+         self.open('/proc/stat')
+         self.names = self.names()
+ 
+@@ -23,9 +23,10 @@ class dstat_plugin(dstat):
+             if len(l) <= cpunr: continue
+             l1 = l[0].split(':')[0]
+             ### Cleanup possible names from /proc/interrupts
+-            l2 = ' '.join(l[cpunr+2:])
++            l2 = ' '.join(l[cpunr+3:])
+             l2 = l2.replace('_hcd:', '/')
+             l2 = re.sub('@pci[:\d+\.]+', '', l2)
++            l2 = re.sub('ahci\[[:\da-z\.]+\]', 'ahci', l2)
+             ret[l1] = l2
+         return ret
+ 
+@@ -34,14 +35,17 @@ class dstat_plugin(dstat):
+         self.val['total'] = 0.0
+         for line in self.splitlines():
+             if line[0] == 'intr':
+-                self.intset2 = [ long(int) for int in line[3:] ]
++                self.intset2 = [ long(i) for i in line[3:] ]
++
++        if not self.intset1:
++            self.intset1 = [ 0 for i in self.intset2 ]
+ 
+         for i in range(len(self.intset2)):
+             total = (self.intset2[i] - self.intset1[i]) * 1.0 / elapsed
+ 
+             ### Put the highest value in self.val
+             if total > self.val['total']:
+-                if str(i+1) in self.names.keys():
++                if str(i+1) in self.names:
+                     self.val['name'] = self.names[str(i+1)]
+                 else:
+                     self.val['name'] = 'int ' + str(i+1)
+diff --git a/plugins/dstat_vmk_hba.py b/plugins/dstat_vmk_hba.py
+index 5fe8921..ca07c11 100644
+--- a/plugins/dstat_vmk_hba.py
++++ b/plugins/dstat_vmk_hba.py
+@@ -72,7 +72,7 @@ class dstat_plugin(dstat):
+                 if name in self.vars and name != 'total':
+                     self.set2[name] = ( long(l[2]), long(l[4]) )
+ 
+-            for name in self.set2.keys():
++            for name in self.set2:
+                 self.val[name] = map(lambda x, y: (y - x) * 1024.0 / elapsed, self.set1[name], self.set2[name])
+ 
+         if step == op.delay:
+diff --git a/plugins/dstat_vmk_int.py b/plugins/dstat_vmk_int.py
+index 10cb119..82769a7 100644
+--- a/plugins/dstat_vmk_int.py
++++ b/plugins/dstat_vmk_int.py
+@@ -67,7 +67,7 @@ class dstat_plugin(dstat):
+         for name in list:
+             if name in self.discover:
+                 ret.append(name)
+-#           elif name.lower() in self.intmap.keys():
++#           elif name.lower() in self.intmap:
+ #               ret.append(self.intmap[name.lower()])
+         return ret
+ 
+@@ -89,7 +89,7 @@ class dstat_plugin(dstat):
+                 for i in l[1:1+self.vmkcpunr()]:
+                     self.set2[name] = self.set2[name] + long(i)
+ 
+-        for name in self.set2.keys():
++        for name in self.set2:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+ 
+         if step == op.delay:
+diff --git a/plugins/dstat_vmk_nic.py b/plugins/dstat_vmk_nic.py
+index bf63239..2bec037 100644
+--- a/plugins/dstat_vmk_nic.py
++++ b/plugins/dstat_vmk_nic.py
+@@ -68,7 +68,7 @@ class dstat_plugin(dstat):
+                 self.set2['total'] = ( self.set2['total'][0] + long(l[6]), self.set2['total'][1] + long(l[9]) )
+ 
+         if update:
+-            for name in self.set2.keys():
++            for name in self.set2:
+                 self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
+ 
+         if step == op.delay:
+-- 
+2.16.2
+

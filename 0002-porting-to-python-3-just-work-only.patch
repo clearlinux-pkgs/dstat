@@ -1,0 +1,3577 @@
+From f703b21fc37d1559bf419e2c5d5ac73f71990a18 Mon Sep 17 00:00:00 2001
+From: eshizhan <eshizhan@126.com>
+Date: Sat, 9 Sep 2017 19:29:06 +0800
+Subject: [PATCH] porting to python 3, just work only
+
+Signed-off-by: eshizhan <eshizhan@126.com>
+---
+ .gitignore                       |   3 +-
+ .travis.yml                      |  32 +---
+ README.adoc                      |   4 +-
+ dstat                            | 335 ++++++++++++++++++++-------------------
+ plugins/dstat_battery.py         |   2 +-
+ plugins/dstat_condor_queue.py    |  18 +--
+ plugins/dstat_cpufreq.py         |   2 +-
+ plugins/dstat_dbus.py            |   4 +-
+ plugins/dstat_disk_avgqu.py      |   4 +-
+ plugins/dstat_disk_avgrq.py      |   8 +-
+ plugins/dstat_disk_svctm.py      |   6 +-
+ plugins/dstat_disk_tps.py        |  10 +-
+ plugins/dstat_disk_util.py       |  10 +-
+ plugins/dstat_disk_wait.py       |  10 +-
+ plugins/dstat_dstat.py           |   4 +-
+ plugins/dstat_dstat_mem.py       |   8 +-
+ plugins/dstat_fan.py             |   2 +-
+ plugins/dstat_freespace.py       |   4 +-
+ plugins/dstat_fuse.py            |   8 +-
+ plugins/dstat_gpfs.py            |  14 +-
+ plugins/dstat_gpfs_ops.py        |  14 +-
+ plugins/dstat_ib.py              |   6 +-
+ plugins/dstat_innodb_buffer.py   |  14 +-
+ plugins/dstat_innodb_io.py       |  12 +-
+ plugins/dstat_innodb_ops.py      |  12 +-
+ plugins/dstat_jvm_full.py        |   8 +-
+ plugins/dstat_jvm_vm.py          |   8 +-
+ plugins/dstat_lustre.py          |   8 +-
+ plugins/dstat_md_status.py       |   2 +-
+ plugins/dstat_memcache_hits.py   |   4 +-
+ plugins/dstat_mongodb_conn.py    |   6 +-
+ plugins/dstat_mongodb_mem.py     |  10 +-
+ plugins/dstat_mongodb_opcount.py |   8 +-
+ plugins/dstat_mongodb_queue.py   |  12 +-
+ plugins/dstat_mongodb_stats.py   |   6 +-
+ plugins/dstat_mysql5_cmds.py     |  10 +-
+ plugins/dstat_mysql5_conn.py     |   6 +-
+ plugins/dstat_mysql5_innodb.py   |  12 +-
+ plugins/dstat_mysql5_io.py       |   4 +-
+ plugins/dstat_mysql5_keys.py     |   4 +-
+ plugins/dstat_mysql_io.py        |  12 +-
+ plugins/dstat_mysql_keys.py      |  12 +-
+ plugins/dstat_net_packets.py     |   8 +-
+ plugins/dstat_nfs3.py            |  12 +-
+ plugins/dstat_nfs3_ops.py        |   2 +-
+ plugins/dstat_nfsd3.py           |  12 +-
+ plugins/dstat_nfsd3_ops.py       |   2 +-
+ plugins/dstat_ntp.py             |   6 +-
+ plugins/dstat_postfix.py         |   2 +-
+ plugins/dstat_power.py           |   2 +-
+ plugins/dstat_qmail.py           |   2 +-
+ plugins/dstat_rpc.py             |   2 +-
+ plugins/dstat_rpcd.py            |   2 +-
+ plugins/dstat_sendmail.py        |   2 +-
+ plugins/dstat_snmp_cpu.py        |   2 +-
+ plugins/dstat_snmp_load.py       |   4 +-
+ plugins/dstat_snmp_mem.py        |   2 +-
+ plugins/dstat_snmp_net.py        |   6 +-
+ plugins/dstat_snmp_net_err.py    |   6 +-
+ plugins/dstat_snmp_sys.py        |   2 +-
+ plugins/dstat_squid.py           |  10 +-
+ plugins/dstat_thermal.py         |   4 +-
+ plugins/dstat_top_bio.py         |   6 +-
+ plugins/dstat_top_bio_adv.py     | 150 +++++++++---------
+ plugins/dstat_top_childwait.py   |   2 +-
+ plugins/dstat_top_cpu.py         |   4 +-
+ plugins/dstat_top_cpu_adv.py     | 148 ++++++++---------
+ plugins/dstat_top_cputime.py     |   6 +-
+ plugins/dstat_top_cputime_avg.py |   6 +-
+ plugins/dstat_top_int.py         |   2 +-
+ plugins/dstat_top_io.py          |   6 +-
+ plugins/dstat_top_io_adv.py      | 150 +++++++++---------
+ plugins/dstat_top_latency.py     |   6 +-
+ plugins/dstat_top_latency_avg.py |   6 +-
+ plugins/dstat_top_oom.py         |   2 +-
+ plugins/dstat_utmp.py            |   2 +-
+ plugins/dstat_vm_cpu.py          |   2 +-
+ plugins/dstat_vm_mem.py          |   2 +-
+ plugins/dstat_vm_mem_adv.py      |   2 +-
+ plugins/dstat_vmk_hba.py         |  10 +-
+ plugins/dstat_vmk_int.py         |   6 +-
+ plugins/dstat_vmk_nic.py         |   8 +-
+ plugins/dstat_vz_cpu.py          |   4 +-
+ plugins/dstat_vz_io.py           |  12 +-
+ plugins/dstat_vz_ubc.py          |   8 +-
+ plugins/dstat_zfs_arc.py         |   2 +-
+ plugins/dstat_zfs_l2arc.py       |   2 +-
+ plugins/dstat_zfs_zil.py         |   2 +-
+ 88 files changed, 658 insertions(+), 666 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index 7e99e36..8cf0c5d 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1 +1,2 @@
+-*.pyc
+\ No newline at end of file
++*.pyc
++.vscode/*
+\ No newline at end of file
+diff --git a/.travis.yml b/.travis.yml
+index b541ef5..b1553fa 100644
+--- a/.travis.yml
++++ b/.travis.yml
+@@ -1,32 +1,16 @@
+ sudo: false
+ language: python
+ python:
++ - "2.6"
+  - "2.7"
+-addons:
+-  apt:
+-    sources:
+-      - deadsnakes
+-    packages:
+-      - python2.4
+-      - python2.6
+-#      - python3.4
+-#      - python3.5
++ - "3.5"
++ - "3.6"
+ #install:
+ #  - pip install dbus-python
+ #  - pip install python-utmp
+ script:
+-  - python2.4 ./dstat --version
+-  - python2.4 ./dstat -taf 1 5
+-#  - python2.4 ./dstat -t --all-plugins 1 5
+-  - python2.6 ./dstat --version
+-  - python2.6 ./dstat -taf 1 5
+-  - python2.6 ./dstat -t --all-plugins 1 5
+-  - python2.7 ./dstat --version
+-  - python2.7 ./dstat -taf 1 5
+-  - python2.7 ./dstat -t --all-plugins 1 5
+-#  - python3.4 ./dstat --version
+-#  - python3.4 ./dstat -taf 1 5
+-#  - python3.4 ./dstat -t --all-plugins 1 5
+-#  - python3.5 ./dstat --version
+-#  - python3.5 ./dstat -taf 1 5
+-#  - python3.5 ./dstat -t --all-plugins 1 5
+\ No newline at end of file
++  - python ./dstat --version
++  - python ./dstat -taf 1 3
++  - python ./dstat -taf 3 3
++  - python ./dstat --helloworld 1 3
++  - python ./dstat -t --all-plugins 1 3
+\ No newline at end of file
+diff --git a/README.adoc b/README.adoc
+index 55314b5..422c548 100644
+--- a/README.adoc
++++ b/README.adoc
+@@ -1,6 +1,8 @@
+ = DSTAT
+ 
+-image:https://travis-ci.org/rear/rear.svg?branch=master["Build Status", link="https://travis-ci.org/dagwieers/dstat"]
++image:https://travis-ci.org/eshizhan/dstat.svg?branch=master["Build Status", link="https://travis-ci.org/eshizhan/dstat"]
++
++Porting to Python 3 version, JUST WORK only.
+ 
+ Dstat is a versatile replacement for vmstat, iostat, mpstat, netstat and ifstat. Dstat overcomes some of their limitations and while also adding extra features, more counters and flexibility. Dstat is handy for monitoring systems during performance tuning tests, benchmarks or troubleshooting.
+ 
+diff --git a/dstat b/dstat
+index 4fafbb2..b5cf4e6 100755
+--- a/dstat
++++ b/dstat
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python2
++#!/usr/bin/env python
+ 
+ ### This program is free software; you can redistribute it and/or
+ ### modify it under the terms of the GNU General Public License
+@@ -16,7 +16,7 @@
+ 
+ ### Copyright 2004-2016 Dag Wieers <dag@wieers.com>
+ 
+-from __future__ import generators
++from __future__ import print_function
+ 
+ try:
+     import sys, os, time, sched, re, getopt, fnmatch
+@@ -32,11 +32,11 @@ if sys.version_info < (2, 2):
+     sys.exit('error: Python 2.2 or later required')
+ 
+ ### Workaround for python <= 2.2.1
+-try:
+-    True, False
+-except NameError:
+-    True = 1
+-    False = 0
++# try:
++#     True, False
++# except NameError:
++#     True = 1
++#     False = 0
+ 
+ ### Workaround for python < 2.3
+ #if 'enumerate' not in __builtins__.__dict__:
+@@ -116,11 +116,11 @@ class Options:
+         try:
+             opts, args = getopt.getopt(args, 'acdfghilmno:prstTvyC:D:I:M:N:S:V',
+                 ['all', 'all-plugins', 'bits', 'bw', 'black-on-white', 'color',
+-                 'debug', 'filesystem', 'float', 'full', 'help', 'integer',
++                 'debug=', 'filesystem', 'float', 'full', 'help', 'integer',
+                  'list', 'mods', 'modules', 'nocolor', 'noheaders', 'noupdate',
+                  'output=', 'pidfile=', 'profile', 'version', 'vmstat'] + allplugins)
+-        except getopt.error, exc:
+-            print 'dstat: %s, try dstat -h for a list of all the options' % str(exc)
++        except getopt.error as exc:
++            print('dstat: %s, try dstat -h for a list of all the options' % str(exc))
+             sys.exit(1)
+ 
+         for opt, arg in opts:
+@@ -145,7 +145,7 @@ class Options:
+             elif opt in ['-m']:
+                 self.plugins.append('mem')
+             elif opt in ['-M', '--mods', '--modules']:
+-                print >>sys.stderr, 'WARNING: Option %s is deprecated, please use --%s instead' % (opt, ' --'.join(arg.split(',')))
++                print('WARNING: Option %s is deprecated, please use --%s instead' % (opt, ' --'.join(arg.split(','))), file=sys.stderr)
+                 self.plugins += arg.split(',')
+             elif opt in ['-n']:
+                 self.plugins.append('net')
+@@ -175,7 +175,7 @@ class Options:
+ 
+             elif opt in ['--all-plugins']:
+                 ### Make list unique in a fancy fast way
+-                plugins = {}.fromkeys(allplugins).keys()
++                plugins = list({}.fromkeys(allplugins).keys())
+                 plugins.sort()
+                 self.plugins += plugins
+             elif opt in ['--bits']:
+@@ -186,7 +186,7 @@ class Options:
+                 self.color = True
+                 self.update = True
+             elif opt in ['--debug']:
+-                self.debug = self.debug + 1
++                self.debug = int(arg) if arg else 1
+             elif opt in ['--float']:
+                 self.float = True
+             elif opt in ['--integer']:
+@@ -216,62 +216,62 @@ class Options:
+             elif opt.startswith('--'):
+                 self.plugins.append(opt[2:])
+             else:
+-                print 'dstat: option %s unknown to getopt, try dstat -h for a list of all the options' % opt
++                print('dstat: option %s unknown to getopt, try dstat -h for a list of all the options' % opt)
+                 sys.exit(1)
+ 
+         if self.float and self.integer:
+-            print 'dstat: option --float and --integer are mutual exclusive, you can only force one'
++            print('dstat: option --float and --integer are mutual exclusive, you can only force one')
+             sys.exit(1)
+ 
+         if not self.plugins:
+-            print 'You did not select any stats, using -cdngy by default.'
++            print('You did not select any stats, using -cdngy by default.')
+             self.plugins = [ 'cpu', 'disk', 'net', 'page', 'sys' ]
+ 
+         try:
+             if len(args) > 0: self.delay = int(args[0])
+             if len(args) > 1: self.count = int(args[1])
+         except:
+-            print 'dstat: incorrect argument, try dstat -h for the correct syntax'
++            print('dstat: incorrect argument, try dstat -h for the correct syntax')
+             sys.exit(1)
+ 
+         if self.delay <= 0:
+-            print 'dstat: delay must be an integer, greater than zero'
++            print('dstat: delay must be an integer, greater than zero')
+             sys.exit(1)
+ 
+         if self.debug:
+-            print 'Plugins: %s' % self.plugins
++            print('Plugins: %s' % self.plugins)
+ 
+     def version(self):
+-        print 'Dstat %s' % VERSION
+-        print 'Written by Dag Wieers <dag@wieers.com>'
+-        print 'Homepage at http://dag.wieers.com/home-made/dstat/'
+-        print
+-        print 'Platform %s/%s' % (os.name, sys.platform)
+-        print 'Kernel %s' % os.uname()[2]
+-        print 'Python %s' % sys.version
+-        print
++        print('Dstat %s' % VERSION)
++        print('Written by Dag Wieers <dag@wieers.com>')
++        print('Homepage at http://dag.wieers.com/home-made/dstat/')
++        print()
++        print('Platform %s/%s' % (os.name, sys.platform))
++        print('Kernel %s' % os.uname()[2])
++        print('Python %s' % sys.version)
++        print()
+ 
+         color = ""
+         if not gettermcolor():
+             color = "no "
+-        print 'Terminal type: %s (%scolor support)' % (os.getenv('TERM'), color)
++        print('Terminal type: %s (%scolor support)' % (os.getenv('TERM'), color))
+         rows, cols = gettermsize()
+-        print 'Terminal size: %d lines, %d columns' % (rows, cols)
+-        print
+-        print 'Processors: %d' % getcpunr()
+-        print 'Pagesize: %d' % resource.getpagesize()
+-        print 'Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK')
+-        print
++        print('Terminal size: %d lines, %d columns' % (rows, cols))
++        print()
++        print('Processors: %d' % getcpunr())
++        print('Pagesize: %d' % resource.getpagesize())
++        print('Clock ticks per secs: %d' % os.sysconf('SC_CLK_TCK'))
++        print()
+ 
+         global op
+         op = self
+         showplugins()
+ 
+     def usage(self):
+-        print 'Usage: dstat [-afv] [options..] [delay [count]]'
++        print('Usage: dstat [-afv] [options..] [delay [count]]')
+ 
+     def help(self):
+-        print '''Versatile tool for generating system resource statistics
++        print('''Versatile tool for generating system resource statistics
+ 
+ Dstat options:
+   -c, --cpu                enable cpu stats
+@@ -322,12 +322,14 @@ Dstat options:
+   --nocolor                disable colors
+   --noheaders              disable repetitive headers
+   --noupdate               disable intermediate updates
+-  --output file            write CSV output to file
++  -o, --output file        write CSV output to file
+   --profile                show profiling statistics when exiting dstat
++  -V, --version            show version and system info
++  --debug 1,2,3            debug mode
+ 
+ delay is the delay in seconds between each update (default: 1)
+ count is the number of updates to display before exiting (default: unlimited)
+-'''
++''')
+ 
+ ### START STATS DEFINITIONS ###
+ class dstat:
+@@ -351,7 +353,7 @@ class dstat:
+         if callable(self.vars):
+             self.vars = self.vars()
+         if not self.vars:
+-            raise Exception, 'No counter objects to monitor'
++            raise Exception('No counter objects to monitor')
+         if callable(self.name):
+             self.name = self.name()
+         if callable(self.nick):
+@@ -370,9 +372,9 @@ class dstat:
+                 self.val[name] = self.set1[name] = self.set2[name] = 0
+         else: ### Plugin API version 1
+             for name in self.vars + [ 'total', ]:
+-                self.val[name] = range(self.cols)
+-                self.set1[name] = range(self.cols)
+-                self.set2[name] = range(self.cols)
++                self.val[name] = list(range(self.cols))
++                self.set1[name] = list(range(self.cols))
++                self.set2[name] = list(range(self.cols))
+                 for i in range(self.cols):
+                     self.val[name][i] = self.set1[name][i] = self.set2[name][i] = 0
+ #        print self.val
+@@ -390,7 +392,7 @@ class dstat:
+             except:
+                 pass
+         if not self.fd:
+-            raise Exception, 'Cannot open file %s' % filename
++            raise Exception('Cannot open file %s' % filename)
+ 
+     def readlines(self):
+         "Return lines from any file descriptor"
+@@ -442,14 +444,14 @@ class dstat:
+ 
+     def colwidth(self):
+         "Return column width"
+-        if isinstance(self.name, types.StringType):
++        if isinstance(self.name, str):
+             return self.width
+         else:
+             return len(self.nick) * self.width + len(self.nick) - 1
+ 
+     def title(self):
+         ret = theme['title']
+-        if isinstance(self.name, types.StringType):
++        if isinstance(self.name, str):
+             width = self.statwidth()
+             return ret + self.name[0:width].center(width).replace(' ', '-') + theme['default']
+         for i, name in enumerate(self.name):
+@@ -464,7 +466,7 @@ class dstat:
+ 
+     def subtitle(self):
+         ret = ''
+-        if isinstance(self.name, types.StringType):
++        if isinstance(self.name, str):
+             for i, nick in enumerate(self.nick):
+                 ret = ret + theme['subtitle'] + nick[0:self.width].center(self.width) + theme['default']
+                 if i + 1 != len(self.nick): ret = ret + char['space']
+@@ -478,7 +480,7 @@ class dstat:
+             return ret
+ 
+     def csvtitle(self):
+-        if isinstance(self.name, types.StringType):
++        if isinstance(self.name, str):
+             return '"' + self.name + '"' + char['sep'] * (len(self.nick) - 1)
+         else:
+             ret = ''
+@@ -489,7 +491,7 @@ class dstat:
+ 
+     def csvsubtitle(self):
+         ret = ''
+-        if isinstance(self.name, types.StringType):
++        if isinstance(self.name, str):
+             for i, nick in enumerate(self.nick):
+                 ret = ret + '"' + nick + '"'
+                 if i + 1 != len(self.nick): ret = ret + char['sep']
+@@ -512,12 +514,12 @@ class dstat:
+ #        if hasattr(self, 'fd') and not self.fd:
+ #            raise Exception, 'File %s does not exist' % self.fd
+         if not self.vars:
+-            raise Exception, 'No objects found, no stats available'
++            raise Exception('No objects found, no stats available')
+         if not self.discover:
+-            raise Exception, 'No objects discovered, no stats available'
++            raise Exception('No objects discovered, no stats available')
+         if self.colwidth():
+             return True
+-        raise Exception, 'Unknown problem, please report'
++        raise Exception('Unknown problem, please report')
+ 
+     def discover(self, *objlist):
+         return True
+@@ -536,7 +538,7 @@ class dstat:
+                 scale = self.scales[i]
+             else:
+                 scale = self.scale
+-            if isinstance(self.val[name], types.TupleType) or isinstance(self.val[name], types.ListType):
++            if isinstance(self.val[name], tuple) or isinstance(self.val[name], list):
+                 line = line + cprintlist(self.val[name], type, self.width, scale)
+                 sep = theme['frame'] + char['colon']
+                 if i + 1 != len(self.vars):
+@@ -561,16 +563,16 @@ class dstat:
+         def printcsv(var):
+             if var != round(var):
+                 return '%.3f' % var
+-            return '%d' % long(round(var))
++            return '%d' % int(round(var))
+ 
+         line = ''
+         for i, name in enumerate(self.vars):
+-            if isinstance(self.val[name], types.ListType) or isinstance(self.val[name], types.TupleType):
++            if isinstance(self.val[name], list) or isinstance(self.val[name], tuple):
+                 for j, val in enumerate(self.val[name]):
+                     line = line + printcsv(val)
+                     if j + 1 != len(self.val[name]):
+                         line = line + char['sep']
+-            elif isinstance(self.val[name], types.StringType):
++            elif isinstance(self.val[name], str):
+                 line = line + self.val[name]
+             else:
+                 line = line + printcsv(self.val[name])
+@@ -597,7 +599,7 @@ class dstat_aio(dstat):
+     def extract(self):
+         for l in self.splitlines():
+             if len(l) < 1: continue
+-            self.val['aio'] = long(l[0])
++            self.val['aio'] = int(l[0])
+ 
+ class dstat_cpu(dstat):
+     def __init__(self):
+@@ -649,7 +651,7 @@ class dstat_cpu(dstat):
+             if len(l) < 9: continue
+             for name in self.vars:
+                 if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
+-                    self.set2[name] = ( long(l[1]) + long(l[2]) + long(l[6]) + long(l[7]), long(l[3]), long(l[4]), long(l[5]), long(l[8]) )
++                    self.set2[name] = ( int(l[1]) + int(l[2]) + int(l[6]) + int(l[7]), int(l[3]), int(l[4]), int(l[5]), int(l[8]) )
+ 
+         for name in self.vars:
+             for i in range(self.cols):
+@@ -678,7 +680,7 @@ class dstat_cpu_use(dstat_cpu):
+             if len(l) < 9: continue
+             for name in self.vars:
+                 if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
+-                    self.set2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]), long(l[8]) )
++                    self.set2[name] = ( int(l[1]) + int(l[2]), int(l[3]), int(l[4]), int(l[5]), int(l[6]), int(l[7]), int(l[8]) )
+ 
+         for name in self.vars:
+             if sum(self.set2[name]) > sum(self.set1[name]):
+@@ -704,7 +706,7 @@ class dstat_cpu_adv(dstat_cpu):
+             if len(l) < 9: continue
+             for name in self.vars:
+                 if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
+-                    self.set2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]), long(l[5]), long(l[6]), long(l[7]), long(l[8]) )
++                    self.set2[name] = ( int(l[1]) + int(l[2]), int(l[3]), int(l[4]), int(l[5]), int(l[6]), int(l[7]), int(l[8]) )
+ 
+         for name in self.vars:
+             for i in range(self.cols):
+@@ -766,7 +768,7 @@ class dstat_cpu24(dstat):
+         for l in self.splitlines():
+             for name in self.vars:
+                 if l[0] == 'cpu' + name or ( l[0] == 'cpu' and name == 'total' ):
+-                    self.set2[name] = ( long(l[1]) + long(l[2]), long(l[3]), long(l[4]) )
++                    self.set2[name] = ( int(l[1]) + int(l[2]), int(l[3]), int(l[4]) )
+ 
+         for name in self.vars:
+             for i in range(self.cols):
+@@ -792,7 +794,7 @@ class dstat_disk(dstat):
+             ret.append(name)
+         for item in objlist: ret.append(item)
+         if not ret:
+-            raise Exception, "No suitable block devices found to monitor"
++            raise Exception("No suitable block devices found to monitor")
+         return ret
+ 
+     def basename(self, disk):
+@@ -807,19 +809,19 @@ class dstat_disk(dstat):
+                     if target[0] != '/':
+                         target = os.path.join(os.path.dirname(disk), target)
+                         target = os.path.normpath(target)
+-                    print 'dstat: symlink %s -> %s' % (disk, target)
++                    print('dstat: symlink %s -> %s' % (disk, target))
+                     disk = target
+                 # trim leading /dev/
+                 return disk[5:]
+             else:
+-                print 'dstat: %s does not exist' % disk
++                print('dstat: %s does not exist' % disk)
+         else:
+             return disk
+ 
+     def vars(self):
+         ret = []
+         if op.disklist:
+-            varlist = map(self.basename, op.disklist)
++            varlist = list(map(self.basename, op.disklist))
+         elif not op.full:
+             varlist = ('total',)
+         else:
+@@ -846,17 +848,17 @@ class dstat_disk(dstat):
+             name = l[2]
+             if l[3:] == ['0',] * 11: continue
+             if not self.diskfilter.match(name):
+-                self.set2['total'] = ( self.set2['total'][0] + long(l[5]), self.set2['total'][1] + long(l[9]) )
++                self.set2['total'] = ( self.set2['total'][0] + int(l[5]), self.set2['total'][1] + int(l[9]) )
+             if name in self.vars and name != 'total':
+-                self.set2[name] = ( self.set2[name][0] + long(l[5]), self.set2[name][1] + long(l[9]) )
++                self.set2[name] = ( self.set2[name][0] + int(l[5]), self.set2[name][1] + int(l[9]) )
+             for diskset in self.vars:
+                 if diskset in op.diskset:
+                     for disk in op.diskset[diskset]:
+                         if fnmatch.fnmatch(name, disk):
+-                            self.set2[diskset] = ( self.set2[diskset][0] + long(l[5]), self.set2[diskset][1] + long(l[9]) )
++                            self.set2[diskset] = ( self.set2[diskset][0] + int(l[5]), self.set2[diskset][1] + int(l[9]) )
+ 
+         for name in self.set2:
+-            self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
++            self.val[name] = list(map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+@@ -868,7 +870,7 @@ class dstat_disk24(dstat):
+         self.diskfilter = re.compile('^([hsv]d[a-z]+\d+|cciss/c\d+d\d+p\d+|dm-\d+|md\d+|mmcblk\d+p\d0|VxVM\d+)$')
+         self.open('/proc/partitions')
+         if self.fd and not self.discover:
+-            raise Exception, 'Kernel has no per-partition I/O accounting [CONFIG_BLK_STATS], use at least 2.4.20'
++            raise Exception('Kernel has no per-partition I/O accounting [CONFIG_BLK_STATS], use at least 2.4.20')
+         self.cols = 2
+ 
+     def discover(self, *objlist):
+@@ -879,7 +881,7 @@ class dstat_disk24(dstat):
+             ret.append(name)
+         for item in objlist: ret.append(item)
+         if not ret:
+-            raise Exception, "No suitable block devices found to monitor"
++            raise Exception("No suitable block devices found to monitor")
+         return ret
+ 
+     def basename(self, disk):
+@@ -894,19 +896,19 @@ class dstat_disk24(dstat):
+                     if target[0] != '/':
+                         target = os.path.join(os.path.dirname(disk), target)
+                         target = os.path.normpath(target)
+-                    print 'dstat: symlink %s -> %s' % (disk, target)
++                    print('dstat: symlink %s -> %s' % (disk, target))
+                     disk = target
+                 # trim leading /dev/
+                 return disk[5:]
+             else:
+-                print 'dstat: %s does not exist' % disk
++                print('dstat: %s does not exist' % disk)
+         else:
+             return disk
+ 
+     def vars(self):
+         ret = []
+         if op.disklist:
+-            varlist = map(self.basename, op.disklist)
++            varlist = list(map(self.basename, op.disklist))
+         elif not op.full:
+             varlist = ('total',)
+         else:
+@@ -930,17 +932,17 @@ class dstat_disk24(dstat):
+             if len(l) < 15 or l[0] == 'major' or int(l[1]) % 16 != 0: continue
+             name = l[3]
+             if not self.diskfilter.match(name):
+-                self.set2['total'] = ( self.set2['total'][0] + long(l[6]), self.set2['total'][1] + long(l[10]) )
++                self.set2['total'] = ( self.set2['total'][0] + int(l[6]), self.set2['total'][1] + int(l[10]) )
+             if name in self.vars:
+-                self.set2[name] = ( self.set2[name][0] + long(l[6]), self.set2[name][1] + long(l[10]) )
++                self.set2[name] = ( self.set2[name][0] + int(l[6]), self.set2[name][1] + int(l[10]) )
+             for diskset in self.vars:
+                 if diskset in op.diskset:
+                     for disk in op.diskset[diskset]:
+                         if fnmatch.fnmatch(name, disk):
+-                            self.set2[diskset] = ( self.set2[diskset][0] + long(l[6]), self.set2[diskset][1] + long(l[10]) )
++                            self.set2[diskset] = ( self.set2[diskset][0] + int(l[6]), self.set2[diskset][1] + int(l[10]) )
+ 
+         for name in self.set2:
+-            self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
++            self.val[name] = list(map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+@@ -971,7 +973,7 @@ class dstat_disk24_old(dstat):
+             break
+         for item in objlist: ret.append(item)
+         if not ret:
+-            raise Exception, "No suitable block devices found to monitor"
++            raise Exception("No suitable block devices found to monitor")
+         return ret
+ 
+     def vars(self):
+@@ -1008,18 +1010,18 @@ class dstat_disk24_old(dstat):
+                 if len(l) < 4: continue
+                 name = dev(int(l[0]), int(l[1]))
+                 if not self.diskfilter.match(name):
+-                    self.set2['total'] = ( self.set2['total'][0] + long(l[2]), self.set2['total'][1] + long(l[3]) )
++                    self.set2['total'] = ( self.set2['total'][0] + int(l[2]), self.set2['total'][1] + int(l[3]) )
+                 if name in self.vars and name != 'total':
+-                    self.set2[name] = ( self.set2[name][0] + long(l[2]), self.set2[name][1] + long(l[3]) )
++                    self.set2[name] = ( self.set2[name][0] + int(l[2]), self.set2[name][1] + int(l[3]) )
+                 for diskset in self.vars:
+                     if diskset in op.diskset:
+                         for disk in op.diskset[diskset]:
+                             if fnmatch.fnmatch(name, disk):
+-                                self.set2[diskset] = ( self.set2[diskset][0] + long(l[2]), self.set2[diskset][1] + long(l[3]) )
++                                self.set2[diskset] = ( self.set2[diskset][0] + int(l[2]), self.set2[diskset][1] + int(l[3]) )
+             break
+ 
+         for name in self.set2:
+-            self.val[name] = map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name])
++            self.val[name] = list(map(lambda x, y: (y - x) * 512.0 / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+@@ -1050,11 +1052,11 @@ class dstat_fs(dstat):
+         for line in dopen('/proc/sys/fs/file-nr'):
+             l = line.split()
+             if len(l) < 1: continue
+-            self.val['files'] = long(l[0])
++            self.val['files'] = int(l[0])
+         for line in dopen('/proc/sys/fs/inode-nr'):
+             l = line.split()
+             if len(l) < 2: continue
+-            self.val['inodes'] = long(l[0]) - long(l[1])
++            self.val['inodes'] = int(l[0]) - int(l[1])
+ 
+ class dstat_int(dstat):
+     def __init__(self):
+@@ -1082,7 +1084,7 @@ class dstat_int(dstat):
+         for l in self.splitlines():
+             if l[0] != 'intr': continue
+             for name, i in enumerate(l[2:]):
+-                if long(i) > 10: ret.append(str(name))
++                if int(i) > 10: ret.append(str(name))
+         return ret
+ 
+ #   def check(self):
+@@ -1115,8 +1117,8 @@ class dstat_int(dstat):
+             if not l or l[0] != 'intr': continue
+             for name in self.vars:
+                 if name != 'total':
+-                    self.set2[name] = long(l[int(name) + 2])
+-            self.set2['total'] = long(l[1])
++                    self.set2[name] = int(l[int(name) + 2])
++            self.set2['total'] = int(l[1])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+@@ -1148,7 +1150,7 @@ class dstat_int24(dstat):
+         for l in self.splitlines():
+             if len(l) < cpunr+1: continue
+             name = l[0].split(':')[0]
+-            if long(l[1]) > 10:
++            if int(l[1]) > 10:
+                 ret.append(name)
+         return ret
+ 
+@@ -1184,7 +1186,7 @@ class dstat_int24(dstat):
+             if name in self.vars:
+                 self.set2[name] = 0
+                 for i in l[1:1+cpunr]:
+-                    self.set2[name] = self.set2[name] + long(i)
++                    self.set2[name] = self.set2[name] + int(i)
+ #           elif len(l) > 2 + cpunr:
+ #               for hw in self.vars:
+ #                   for mod in l[2+cpunr:]:
+@@ -1215,7 +1217,7 @@ class dstat_io(dstat):
+             ret.append(name)
+         for item in objlist: ret.append(item)
+         if not ret:
+-            raise Exception, "No suitable block devices found to monitor"
++            raise Exception("No suitable block devices found to monitor")
+         return ret
+ 
+     def vars(self):
+@@ -1248,17 +1250,17 @@ class dstat_io(dstat):
+             name = l[2]
+             if l[3:] == ['0',] * 11: continue
+             if not self.diskfilter.match(name):
+-                self.set2['total'] = ( self.set2['total'][0] + long(l[3]), self.set2['total'][1] + long(l[7]) )
++                self.set2['total'] = ( self.set2['total'][0] + int(l[3]), self.set2['total'][1] + int(l[7]) )
+             if name in self.vars and name != 'total':
+-                self.set2[name] = ( self.set2[name][0] + long(l[3]), self.set2[name][1] + long(l[7]) )
++                self.set2[name] = ( self.set2[name][0] + int(l[3]), self.set2[name][1] + int(l[7]) )
+             for diskset in self.vars:
+                 if diskset in op.diskset:
+                     for disk in op.diskset[diskset]:
+                         if fnmatch.fnmatch(name, disk):
+-                            self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
++                            self.set2[diskset] = ( self.set2[diskset][0] + int(l[3]), self.set2[diskset][1] + int(l[7]) )
+ 
+         for name in self.set2:
+-            self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
++            self.val[name] = list(map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+@@ -1325,9 +1327,9 @@ class dstat_mem(dstat):
+             if len(l) < 2: continue
+             name = l[0].split(':')[0]
+             if name in self.vars:
+-                self.val[name] = long(l[1]) * 1024.0
++                self.val[name] = int(l[1]) * 1024.0
+             if name in adv_extract_vars:
+-                adv_val[name] = long(l[1]) * 1024.0
++                adv_val[name] = int(l[1]) * 1024.0
+ 
+         self.val['MemUsed'] = adv_val['MemTotal'] - self.val['MemFree'] - self.val['Buffers'] - self.val['Cached'] - adv_val['SReclaimable'] + adv_val['Shmem']
+ 
+@@ -1378,7 +1380,7 @@ class dstat_net(dstat):
+             if name in self.discover + ['total', 'lo']:
+                 ret.append(name)
+         if not ret:
+-            raise Exception, "No suitable network interfaces found to monitor"
++            raise Exception("No suitable network interfaces found to monitor")
+         return ret
+ 
+     def name(self):
+@@ -1391,13 +1393,13 @@ class dstat_net(dstat):
+             if l[2] == '0' and l[10] == '0': continue
+             name = l[0]
+             if name in self.vars :
+-                self.set2[name] = ( long(l[1]), long(l[9]) )
++                self.set2[name] = ( int(l[1]), int(l[9]) )
+             if not self.totalfilter.match(name):
+-                self.set2['total'] = ( self.set2['total'][0] + long(l[1]), self.set2['total'][1] + long(l[9]))
++                self.set2['total'] = ( self.set2['total'][0] + int(l[1]), self.set2['total'][1] + int(l[9]))
+ 
+         if update:
+             for name in self.set2:
+-                self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
++                self.val[name] = list(map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name]))
+                 if self.val[name][0] < 0: self.val[name][0] += maxint + 1
+                 if self.val[name][1] < 0: self.val[name][1] += maxint + 1
+ 
+@@ -1417,7 +1419,7 @@ class dstat_page(dstat):
+             if len(l) < 2: continue
+             name = l[0]
+             if name in self.vars:
+-                self.set2[name] = long(l[1])
++                self.set2[name] = int(l[1])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * pagesize * 1.0 / elapsed
+@@ -1438,8 +1440,8 @@ class dstat_page24(dstat):
+             if len(l) < 3: continue
+             name = l[0]
+             if name != 'swap': continue
+-            self.set2['pswpin'] = long(l[1])
+-            self.set2['pswpout'] = long(l[2])
++            self.set2['pswpin'] = int(l[1])
++            self.set2['pswpout'] = int(l[2])
+             break
+ 
+         for name in self.vars:
+@@ -1464,11 +1466,11 @@ class dstat_proc(dstat):
+             name = l[0]
+             if name == 'processes':
+                 self.val['processes'] = 0
+-                self.set2[name] = long(l[1])
++                self.set2[name] = int(l[1])
+             elif name == 'procs_running':
+-                self.set2[name] = self.set2[name] + long(l[1]) - 1
++                self.set2[name] = self.set2[name] + int(l[1]) - 1
+             elif name == 'procs_blocked':
+-                self.set2[name] = self.set2[name] + long(l[1])
++                self.set2[name] = self.set2[name] + int(l[1])
+ 
+         self.val['processes'] = (self.set2['processes'] - self.set1['processes']) * 1.0 / elapsed
+         for name in ('procs_running', 'procs_blocked'):
+@@ -1510,7 +1512,7 @@ class dstat_socket(dstat):
+     def extract(self):
+         for l in self.splitlines():
+             if len(l) < 3: continue
+-            self.val[l[0]] = long(l[2])
++            self.val[l[0]] = int(l[2])
+ 
+         self.val['other'] = self.val['sockets:'] - self.val['TCP:'] - self.val['UDP:'] - self.val['RAW:'] - self.val['FRAG:']
+ 
+@@ -1551,7 +1553,7 @@ class dstat_swap(dstat):
+             if name in self.discover + ['total']:
+                 ret.append(name)
+         if not ret:
+-            raise Exception, "No suitable swap devices found to monitor"
++            raise Exception("No suitable swap devices found to monitor")
+         return ret
+ 
+     def name(self):
+@@ -1562,7 +1564,7 @@ class dstat_swap(dstat):
+         for l in self.splitlines():
+             if len(l) < 5 or l[0] == 'Filename': continue
+             name = l[0]
+-            self.val[name] = ( long(l[3]) * 1024.0, (long(l[2]) - long(l[3])) * 1024.0 )
++            self.val[name] = ( int(l[3]) * 1024.0, (int(l[2]) - int(l[3])) * 1024.0 )
+             self.val['total'] = ( self.val['total'][0] + self.val[name][0], self.val['total'][1] + self.val[name][1])
+ 
+ class dstat_swap_old(dstat):
+@@ -1578,7 +1580,7 @@ class dstat_swap_old(dstat):
+             if len(l) < 2: continue
+             name = l[0].split(':')[0]
+             if name in self.vars + ('SwapTotal',):
+-                self.val[name] = long(l[1]) * 1024.0
++                self.val[name] = int(l[1]) * 1024.0
+ 
+         self.val['SwapUsed'] = self.val['SwapTotal'] - self.val['SwapFree']
+ 
+@@ -1597,7 +1599,7 @@ class dstat_sys(dstat):
+             if len(l) < 2: continue
+             name = l[0]
+             if name in self.vars:
+-                self.set2[name] = long(l[1])
++                self.set2[name] = int(l[1])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+@@ -1701,7 +1703,7 @@ class dstat_vm(dstat):
+             if len(l) < 2: continue
+             for name in self.vars:
+                 if fnmatch.fnmatch(l[0], name):
+-                    self.set2[name] += long(l[1])
++                    self.set2[name] += int(l[1])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+@@ -1740,9 +1742,9 @@ class dstat_zones(dstat):
+                 zone = l[3]
+                 found_high = 0
+             if l[0].startswith('pages'):
+-                self.val[zone+'_free'] = long(l[2])
++                self.val[zone+'_free'] = int(l[2])
+             if l[0].startswith('high') and not found_high:
+-                self.val[zone+'_high'] = long(l[1])
++                self.val[zone+'_high'] = int(l[1])
+                 found_high = 1
+ 
+ 
+@@ -1861,7 +1863,7 @@ def set_theme():
+ def ticks():
+     "Return the number of 'ticks' since bootup"
+     try:
+-        for line in open('/proc/uptime', 'r', 0).readlines():
++        for line in open('/proc/uptime', 'r').readlines():
+             l = line.split()
+             if len(l) < 2: continue
+             return float(l[0])
+@@ -1870,7 +1872,7 @@ def ticks():
+             l = line.split()
+             if len(l) < 2: continue
+             if l[0] == 'btime':
+-                return time.time() - long(l[1])
++                return time.time() - int(l[1])
+ 
+ def improve(devname):
+     "Improve a device name"
+@@ -1884,12 +1886,12 @@ def dopen(filename):
+     "Open a file for reuse, if already opened, return file descriptor"
+     global fds
+     if not os.path.exists(filename):
+-        raise Exception, 'File %s does not exist' % filename
++        raise Exception('File %s does not exist' % filename)
+ #        return None
+     if 'fds' not in globals():
+         fds = {}
+-    if file not in fds:
+-        fds[filename] = open(filename, 'r', 0)
++    if filename not in fds:
++        fds[filename] = open(filename, 'r')
+     else:
+         fds[filename].seek(0)
+     return fds[filename]
+@@ -1940,7 +1942,7 @@ def greppipe(fileobj, str, tmout = 0.001):
+         else:
+             ret = ''
+     if op.debug:
+-        raise Exception, 'Nothing found during greppipe data collection'
++        raise Exception('Nothing found during greppipe data collection')
+     return None
+ 
+ def matchpipe(fileobj, string, tmout = 0.001):
+@@ -1958,13 +1960,13 @@ def matchpipe(fileobj, string, tmout = 0.001):
+         else:
+             ret = ''
+     if op.debug:
+-        raise Exception, 'Nothing found during matchpipe data collection'
++        raise Exception('Nothing found during matchpipe data collection')
+     return None
+ 
+ def cmd_test(cmd):
+     pipes = os.popen3(cmd, 't', 0)
+     for line in pipes[2].readlines():
+-        raise Exception, line.strip()
++        raise Exception(line.strip())
+ 
+ def cmd_readlines(cmd):
+     pipes = os.popen3(cmd, 't', 0)
+@@ -2056,7 +2058,7 @@ def dchg(var, width, base):
+     "Convert decimal to string given base and length"
+     c = 0
+     while True:
+-        ret = str(long(round(var)))
++        ret = str(int(round(var)))
+         if len(ret) <= width:
+             break
+         var = var / base
+@@ -2074,16 +2076,16 @@ def fchg(var, width, base):
+             break
+ #       ret = repr(round(var))
+ #       ret = repr(long(round(var, maxlen)))
+-        ret = str(long(round(var, width)))
++        ret = str(int(round(var, width)))
+         if len(ret) <= width:
+             i = width - len(ret) - 1
+             while i > 0:
+                 ret = ('%%.%df' % i) % var
+-                if len(ret) <= width and ret != str(long(round(var, width))):
++                if len(ret) <= width and ret != str(int(round(var, width))):
+                     break
+                 i = i - 1
+             else:
+-                ret = str(long(round(var)))
++                ret = str(int(round(var)))
+             break
+         var = var / base
+         c = c + 1
+@@ -2124,7 +2126,7 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
+         width = width - 1
+ 
+     ### If this is a negative value, return a dash
+-    if var < 0:
++    if isinstance(var, (int, float)) and var < 0:
+         if unit:
+             return theme['error'] + '-'.rjust(width) + char['space'] + theme['default']
+         else:
+@@ -2164,7 +2166,7 @@ def cprint(var, type = 'f', width = 4, scale = 1000):
+     elif type in ('t'):
+         ret, c = tchg(var, width), ctext
+     else:
+-        raise Exception, 'Type %s not known to dstat.' % type
++        raise Exception('Type %s not known to dstat.' % type)
+ 
+     ### Set the counter color
+     if ret == '0':
+@@ -2236,11 +2238,11 @@ def csvheader(totlist):
+ def info(level, str):
+     "Output info message"
+ #   if level <= op.verbose:
+-    print >>sys.stderr, str
++    print(str, file=sys.stderr)
+ 
+ def die(ret, str):
+     "Print error and exit with errorcode"
+-    print >>sys.stderr, str
++    print(str, file=sys.stderr)
+     exit(ret)
+ 
+ def initterm():
+@@ -2295,10 +2297,10 @@ def gettermcolor():
+             if curses.tigetnum('colors') < 0:
+                 return False
+         except ImportError:
+-            print >>sys.stderr, 'Color support is disabled as python-curses is not installed.'
++            print('Color support is disabled as python-curses is not installed.', file=sys.stderr)
+             return False
+         except:
+-            print >>sys.stderr, 'Color support is disabled as curses does not find terminal "%s".' % os.getenv('TERM')
++            print('Color support is disabled as curses does not find terminal "%s".' % os.getenv('TERM'), file=sys.stderr)
+             return False
+         return True
+     return False
+@@ -2362,7 +2364,7 @@ def getcpunr():
+         if cpunr > 0:
+             return cpunr
+     except:
+-        raise Exception, "Problem finding number of CPUs in system."
++        raise Exception("Problem finding number of CPUs in system.")
+ 
+ def blockdevices():
+     ### We have to replace '!' by '/' to support cciss!c0d0 type devices :-/
+@@ -2476,7 +2478,7 @@ def listplugins():
+ 
+ def showplugins():
+     rows, cols = gettermsize()
+-    print 'internal:\n\t',
++    print('internal:\n\t', end=' ')
+     remod = re.compile('^dstat_(.+)$')
+     plugins = []
+     for filename in globals():
+@@ -2487,11 +2489,11 @@ def showplugins():
+     for mod in plugins:
+         cols2 = cols2 - len(mod) - 2
+         if cols2 <= 0:
+-            print '\n\t',
++            print('\n\t', end=' ')
+             cols2 = cols - len(mod) - 10
+         if mod != plugins[-1]:
+-            print mod+',',
+-    print mod
++            print(mod+',', end=' ')
++    print(mod)
+     remod = re.compile('.+/dstat_(.+).py$')
+     for path in pluginpath:
+         plugins = []
+@@ -2500,15 +2502,15 @@ def showplugins():
+         if not plugins: continue
+         plugins.sort()
+         cols2 = cols - 8
+-        print '%s:\n\t' % os.path.abspath(path),
++        print('%s:\n\t' % os.path.abspath(path), end=' ')
+         for mod in plugins:
+             cols2 = cols2 - len(mod) - 2
+             if cols2 <= 0:
+-                print '\n\t',
++                print('\n\t', end=' ')
+                 cols2 = cols - len(mod) - 10
+             if mod != plugins[-1]:
+-                print mod+',',
+-        print mod
++                print(mod+',', end=' ')
++        print(mod)
+ 
+ def exit(ret):
+     sys.stdout.write(ansi['reset'])
+@@ -2529,7 +2531,7 @@ def exit(ret):
+ #        p.sort_stats('time', 'cum').print_stats(.5, 'init')
+ #        p.print_callees()
+     elif op.profile:
+-        print >>sys.stderr, "No profiling data was found, maybe profiler was interrupted ?"
++        print("No profiling data was found, maybe profiler was interrupted ?", file=sys.stderr)
+ 
+     sys.exit(ret)
+ 
+@@ -2542,7 +2544,7 @@ def main():
+ 
+     cpunr = getcpunr()
+     hz = os.sysconf('SC_CLK_TCK')
+-    maxint = (sys.maxint + 1) * 2
++    maxint = (sys.maxsize + 1) * 2
+     ownpid = str(os.getpid())
+     pagesize = resource.getpagesize()
+     interval = 1
+@@ -2576,12 +2578,12 @@ def main():
+     ### Prepare CSV output file (unbuffered)
+     if op.output:
+         if not os.path.exists(op.output):
+-            outputfile = open(op.output, 'w', 0)
++            outputfile = open(op.output, 'w')
+             outputfile.write('"Dstat %s CSV output"\n' % VERSION)
+             header = ('"Author:","Dag Wieers <dag@wieers.com>"','','','','"URL:"','"http://dag.wieers.com/home-made/dstat/"\n')
+             outputfile.write(char['sep'].join(header))
+         else:
+-            outputfile = open(op.output, 'a', 0)
++            outputfile = open(op.output, 'a')
+             outputfile.write('\n\n')
+ 
+         header = ('"Host:"','"%s"' % hostname,'','','','"User:"','"%s"\n' % user)
+@@ -2592,11 +2594,11 @@ def main():
+     ### Create pidfile
+     if op.pidfile:
+         try:
+-            pidfile = open(op.pidfile, 'w', 0)
++            pidfile = open(op.pidfile, 'w')
+             pidfile.write(str(os.getpid()))
+             pidfile.close()
+-        except Exception, e:
+-            print >>sys.stderr, 'Failed to create pidfile %s' % op.pidfile, e
++        except Exception as e:
++            print('Failed to create pidfile %s' % op.pidfile, e, file=sys.stderr)
+             op.pidfile = False
+ 
+     ### Empty ansi and theme database if no colors are requested
+@@ -2641,49 +2643,52 @@ def main():
+                     ### TODO: Would using .pyc help with anything ?
+                     ### Try loading python plugin
+                     if description[0] in ('.py', ):
+-                        execfile(pathname)
+-                        exec 'o = dstat_plugin(); del(dstat_plugin)'
++                        exec(compile(open(pathname).read(), pathname, 'exec'))
++                        # exec('o = dstat_plugin(); del(dstat_plugin)')
++                        o = locals()['dstat_plugin']()
++                        del locals()['dstat_plugin']
+                         o.filename = pluginfile
+                         o.check()
+                         o.prepare()
+ 
+                     ### Try loading C plugin (not functional yet)
+                     elif description[0] == '.so':
+-                        exec 'import %s' % pluginfile
+-                        exec 'o = %s.new()' % pluginfile
++                        exec('import %s' % pluginfile)
++                        exec('o = %s.new()' % pluginfile)
+                         o.check()
+                         o.prepare()
+ #                        print dir(o)
+ #                        print o.__module__
+ #                        print o.name
+                     else:
+-                        print >>sys.stderr, 'Module %s is of unknown type.' % pluginfile
++                        print('Module %s is of unknown type.' % pluginfile, file=sys.stderr)
+ 
+                 else:
+-                    exec 'o = %s()' % pluginfile
++                    # exec('o = %s()' % pluginfile)
++                    o = globals()[pluginfile]()
+                     o.check()
+                     o.prepare()
+ #                print o.__module__
+-            except Exception, e:
++            except Exception as e:
+                 if mod == mods[-1]:
+-                    print >>sys.stderr, 'Module %s failed to load. (%s)' % (pluginfile, e)
++                    print('Module %s failed to load. (%s)' % (pluginfile, e), file=sys.stderr)
+                 elif op.debug:
+-                    print >>sys.stderr, 'Module %s failed to load, trying another. (%s)' % (pluginfile, e)
++                    print('Module %s failed to load, trying another. (%s)' % (pluginfile, e), file=sys.stderr)
+                 if op.debug >= 3:
+                     raise
+ #                tb = sys.exc_info()[2]
+                 continue
+             except:
+-                print >>sys.stderr, 'Module %s caused unknown exception' % pluginfile
++                print('Module %s caused unknown exception' % pluginfile, file=sys.stderr)
+ 
+             linewidth = linewidth + o.statwidth() + 1
+             totlist.append(o)
+ 
+             if op.debug:
+-                print 'Module', pluginfile,
++                print('Module', pluginfile, end=' ')
+                 if hasattr(o, 'file'):
+-                    print 'requires', o.file,
+-                print
++                    print('requires', o.file, end=' ')
++                print()
+             break
+ 
+     if not totlist:
+@@ -2718,7 +2723,7 @@ def perform(update):
+ 
+         starttime = time.time()
+ 
+-        loop = (update - 1 + op.delay) / op.delay
++        loop = int((update - 1 + op.delay) / op.delay)
+         step = ((update - 1) % op.delay) + 1
+ 
+         ### Get current time (may be different from schedule) for debugging
+@@ -2789,7 +2794,7 @@ def perform(update):
+         ### Display header
+         if showheader:
+             if loop == 0 and totlist != vislist:
+-                print >>sys.stderr, 'Terminal width too small, trimming output.'
++                print('Terminal width too small, trimming output.', file=sys.stderr)
+             showheader = False
+             sys.stdout.write(newline)
+             newline = header(totlist, vislist)
+@@ -2808,7 +2813,7 @@ def perform(update):
+         sys.stdout.write(line + theme['input'])
+         if op.output and step == op.delay:
+             outputfile.write(oline + '\n')
+-#            outputfile.flush()
++            outputfile.flush()
+ 
+         ### Print debugging output
+         if op.debug:
+@@ -2844,7 +2849,7 @@ if __name__ == '__main__':
+             profile.run('main()', op.profile)
+         else:
+             main()
+-    except KeyboardInterrupt, e:
++    except KeyboardInterrupt as e:
+         if op.update:
+             sys.stdout.write('\n')
+     exit(0)
+diff --git a/plugins/dstat_battery.py b/plugins/dstat_battery.py
+index dd84623..3cf3752 100644
+--- a/plugins/dstat_battery.py
++++ b/plugins/dstat_battery.py
+@@ -18,7 +18,7 @@ class dstat_plugin(dstat):
+         elif glob.glob('/sys/class/power_supply/BAT*'):
+             self.battery_type = "sysfs"
+         else:
+-            raise Exception, "No ACPI battery information found."
++            raise Exception("No ACPI battery information found.")
+ 
+     def vars(self):
+         ret = []
+diff --git a/plugins/dstat_condor_queue.py b/plugins/dstat_condor_queue.py
+index 6acd24d..5aa67ab 100644
+--- a/plugins/dstat_condor_queue.py
++++ b/plugins/dstat_condor_queue.py
+@@ -27,12 +27,12 @@ class condor_classad:
+             self.attributes = condor_classad._parse(config)
+ 
+         if self.attributes == None:
+-            raise Exception, 'condor_config must be initialized either using a file or config text'
++            raise Exception('condor_config must be initialized either using a file or config text')
+ 
+         local_config_file = self['LOCAL_CONFIG_FILE']
+ 
+         if local_config_file != None:
+-            for k,v in condor_classad._read_from_file(local_config_file).items():
++            for k,v in list(condor_classad._read_from_file(local_config_file).items()):
+                 self.attributes[k] = v
+ 
+     def __getitem__(self, name):
+@@ -65,7 +65,7 @@ class condor_classad:
+     @staticmethod
+     def _read_from_file(filename):
+         if not os.access(filename, os.R_OK):
+-            raise Exception, 'Unable to read file %s' % filename
++            raise Exception('Unable to read file %s' % filename)
+         try:
+             f = open(filename)
+             return condor_classad._parse((f.read()))
+@@ -91,25 +91,25 @@ class dstat_plugin(dstat):
+     def check(self):
+         config_file = os.environ['CONDOR_CONFIG']
+         if config_file == None:
+-            raise Exception, 'Environment varibale CONDOR_CONFIG is missing'
++            raise Exception('Environment varibale CONDOR_CONFIG is missing')
+         self.condor_config = condor_classad(config_file)
+ 
+         bin_dir = self.condor_config['BIN']
+         if bin_dir == None:
+-            raise Exception, 'Unable to find BIN directory in condor config file %s' % config_file
++            raise Exception('Unable to find BIN directory in condor config file %s' % config_file)
+ 
+         self.condor_status_cmd = os.path.join(bin_dir, 'condor_q')
+ 
+         if not os.access(self.condor_status_cmd, os.X_OK):
+-            raise Exception, 'Needs %s in the path' % self.condor_status_cmd
++            raise Exception('Needs %s in the path' % self.condor_status_cmd)
+         else:
+             try:
+                 p = os.popen(self.condor_status_cmd+' 2>&1 /dev/null')
+                 ret = p.close()
+                 if ret:
+-                    raise Exception, 'Cannot interface with Condor - condor_q returned != 0?'
++                    raise Exception('Cannot interface with Condor - condor_q returned != 0?')
+             except IOError:
+-                raise Exception, 'Unable to execute %s' % self.condor_status_cmd
++                raise Exception('Unable to execute %s' % self.condor_status_cmd)
+             return True
+ 
+     def extract(self):
+@@ -122,7 +122,7 @@ class dstat_plugin(dstat):
+ 
+                 m = CONDOR_Q_STAT_PATTER.match(last_line)
+                 if m == None:
+-                    raise Exception, 'Invalid output from %s. Got: %s' % (cmd, last_line)
++                    raise Exception('Invalid output from %s. Got: %s' % (cmd, last_line))
+ 
+                 stats = [int(s.strip()) for s in m.groups()]
+                 for i,j in enumerate(self.vars):
+diff --git a/plugins/dstat_cpufreq.py b/plugins/dstat_cpufreq.py
+index 9b77320..e5d2916 100644
+--- a/plugins/dstat_cpufreq.py
++++ b/plugins/dstat_cpufreq.py
+@@ -14,7 +14,7 @@ class dstat_plugin(dstat):
+     def check(self): 
+         for cpu in glob.glob('/sys/devices/system/cpu/cpu[0-9]*'):
+             if not os.access(cpu+'/cpufreq/scaling_cur_freq', os.R_OK):
+-                raise Exception, 'Cannot access acpi %s frequency information' % os.path.basename(cpu)
++                raise Exception('Cannot access acpi %s frequency information' % os.path.basename(cpu))
+ 
+     def vars(self):
+         ret = []
+diff --git a/plugins/dstat_dbus.py b/plugins/dstat_dbus.py
+index b6a1c98..cc5cbf1 100644
+--- a/plugins/dstat_dbus.py
++++ b/plugins/dstat_dbus.py
+@@ -24,9 +24,9 @@ class dstat_plugin(dstat):
+                 except:
+                     self.sesbus = None
+             except:
+-                raise Exception, 'Unable to connect to dbus message bus'
++                raise Exception('Unable to connect to dbus message bus')
+         except:
+-            raise Exception, 'Needs python-dbus module'
++            raise Exception('Needs python-dbus module')
+ 
+     def extract(self):
+         self.val['system'] = len(self.sysbus.ListServices()) - 1
+diff --git a/plugins/dstat_disk_avgqu.py b/plugins/dstat_disk_avgqu.py
+index 09343b8..e6148ac 100644
+--- a/plugins/dstat_disk_avgqu.py
++++ b/plugins/dstat_disk_avgqu.py
+@@ -25,7 +25,7 @@ class dstat_plugin(dstat):
+             ret.append(name)
+         for item in objlist: ret.append(item)
+         if not ret:
+-            raise Exception, "No suitable block devices found to monitor"
++            raise Exception("No suitable block devices found to monitor")
+         return ret
+ 
+     def vars(self):
+@@ -56,7 +56,7 @@ class dstat_plugin(dstat):
+             name = l[2]
+             if name not in self.vars or name == 'total': continue
+             self.set2[name] = dict(
+-                rq_ticks = long(l[13]),
++                rq_ticks = int(l[13]),
+             )
+ 
+         for name in self.vars:
+diff --git a/plugins/dstat_disk_avgrq.py b/plugins/dstat_disk_avgrq.py
+index 1a55592..2b16259 100644
+--- a/plugins/dstat_disk_avgrq.py
++++ b/plugins/dstat_disk_avgrq.py
+@@ -26,7 +26,7 @@ class dstat_plugin(dstat):
+             ret.append(name)
+         for item in objlist: ret.append(item)
+         if not ret:
+-            raise Exception, "No suitable block devices found to monitor"
++            raise Exception("No suitable block devices found to monitor")
+         return ret
+ 
+     def vars(self):
+@@ -57,9 +57,9 @@ class dstat_plugin(dstat):
+             name = l[2]
+             if name not in self.vars or name == 'total': continue
+             self.set2[name] = dict(
+-                nr_ios = long(l[3])+long(l[7]),
+-                rd_sect = long(l[9]),
+-                wr_sect = long(l[11]),
++                nr_ios = int(l[3])+int(l[7]),
++                rd_sect = int(l[9]),
++                wr_sect = int(l[11]),
+             )
+ 
+         for name in self.vars:
+diff --git a/plugins/dstat_disk_svctm.py b/plugins/dstat_disk_svctm.py
+index 98c8201..5bb9681 100644
+--- a/plugins/dstat_disk_svctm.py
++++ b/plugins/dstat_disk_svctm.py
+@@ -29,7 +29,7 @@ class dstat_plugin(dstat):
+             ret.append(name)
+         for item in objlist: ret.append(item)
+         if not ret:
+-            raise Exception, "No suitable block devices found to monitor"
++            raise Exception("No suitable block devices found to monitor")
+         return ret
+ 
+     def vars(self):
+@@ -60,8 +60,8 @@ class dstat_plugin(dstat):
+             name = l[2]
+             if name not in self.vars or name == 'total': continue
+             self.set2[name] = dict(
+-                nr_ios = long(l[3])+long(l[7]),
+-                tot_ticks = long(l[12]),
++                nr_ios = int(l[3])+int(l[7]),
++                tot_ticks = int(l[12]),
+             )
+ 
+         for name in self.vars:
+diff --git a/plugins/dstat_disk_tps.py b/plugins/dstat_disk_tps.py
+index d747a99..f570f0a 100644
+--- a/plugins/dstat_disk_tps.py
++++ b/plugins/dstat_disk_tps.py
+@@ -25,7 +25,7 @@ class dstat_plugin(dstat):
+             ret.append(name)
+         for item in objlist: ret.append(item)
+         if not ret:
+-            raise Exception, "No suitable block devices found to monitor"
++            raise Exception("No suitable block devices found to monitor")
+         return ret
+ 
+     def vars(self):
+@@ -58,17 +58,17 @@ class dstat_plugin(dstat):
+             if l[3:] == ['0',] * 11: continue
+             name = l[2]
+             if not self.diskfilter.match(name):
+-                self.set2['total'] = ( self.set2['total'][0] + long(l[3]), self.set2['total'][1] + long(l[7]) )
++                self.set2['total'] = ( self.set2['total'][0] + int(l[3]), self.set2['total'][1] + int(l[7]) )
+             if name in self.vars and name != 'total':
+-                self.set2[name] = ( self.set2[name][0] + long(l[3]), self.set2[name][1] + long(l[7]))
++                self.set2[name] = ( self.set2[name][0] + int(l[3]), self.set2[name][1] + int(l[7]))
+             for diskset in self.vars:
+                 if diskset in op.diskset:
+                     for disk in op.diskset[diskset]:
+                         if re.match('^'+disk+'$', name):
+-                            self.set2[diskset] = ( self.set2[diskset][0] + long(l[3]), self.set2[diskset][1] + long(l[7]) )
++                            self.set2[diskset] = ( self.set2[diskset][0] + int(l[3]), self.set2[diskset][1] + int(l[7]) )
+ 
+         for name in self.set2:
+-            self.val[name] = map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name])
++            self.val[name] = list(map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+diff --git a/plugins/dstat_disk_util.py b/plugins/dstat_disk_util.py
+index a82b0eb..9994774 100644
+--- a/plugins/dstat_disk_util.py
++++ b/plugins/dstat_disk_util.py
+@@ -28,7 +28,7 @@ class dstat_plugin(dstat):
+             ret.append(name)
+         for item in objlist: ret.append(item)
+         if not ret:
+-            raise Exception, "No suitable block devices found to monitor"
++            raise Exception("No suitable block devices found to monitor")
+         return ret
+ 
+     def basename(self, disk):
+@@ -43,19 +43,19 @@ class dstat_plugin(dstat):
+                     if target[0] != '/':
+                         target = os.path.join(os.path.dirname(disk), target)
+                         target = os.path.normpath(target)
+-                    print 'dstat: symlink %s -> %s' % (disk, target)
++                    print('dstat: symlink %s -> %s' % (disk, target))
+                     disk = target
+                 # trim leading /dev/
+                 return disk[5:]
+             else:
+-                print 'dstat: %s does not exist' % disk
++                print('dstat: %s does not exist' % disk)
+         else:
+             return disk
+ 
+     def vars(self):
+         ret = []
+         if op.disklist:
+-            varlist = map(self.basename, op.disklist)
++            varlist = list(map(self.basename, op.disklist))
+         else:
+             varlist = []
+             for name in self.discover:
+@@ -80,7 +80,7 @@ class dstat_plugin(dstat):
+             name = l[2]
+             if name not in self.vars: continue
+             self.set2[name] = dict(
+-                tot_ticks = long(l[12])
++                tot_ticks = int(l[12])
+             )
+ 
+         for name in self.vars:
+diff --git a/plugins/dstat_disk_wait.py b/plugins/dstat_disk_wait.py
+index 9dc025d..52a170d 100644
+--- a/plugins/dstat_disk_wait.py
++++ b/plugins/dstat_disk_wait.py
+@@ -27,7 +27,7 @@ class dstat_plugin(dstat):
+             ret.append(name)
+         for item in objlist: ret.append(item)
+         if not ret:
+-            raise Exception, "No suitable block devices found to monitor"
++            raise Exception("No suitable block devices found to monitor")
+         return ret
+ 
+     def vars(self):
+@@ -58,10 +58,10 @@ class dstat_plugin(dstat):
+             name = l[2]
+             if name not in self.vars: continue
+             self.set2[name] = dict(
+-                rd_ios = long(l[3]),
+-                wr_ios = long(l[7]),
+-                rd_ticks = long(l[6]),
+-                wr_ticks = long(l[10]),
++                rd_ios = int(l[3]),
++                wr_ios = int(l[7]),
++                rd_ticks = int(l[6]),
++                wr_ticks = int(l[10]),
+             )
+ 
+         for name in self.vars:
+diff --git a/plugins/dstat_dstat.py b/plugins/dstat_dstat.py
+index d3ec186..1dc33c9 100644
+--- a/plugins/dstat_dstat.py
++++ b/plugins/dstat_dstat.py
+@@ -20,8 +20,8 @@ class dstat_plugin(dstat):
+     def extract(self):
+         l = self.splitline()
+ #        l = linecache.getline('/proc/%s/schedstat' % self.pid, 1).split()
+-        self.set2['cputime'] = long(l[0])
+-        self.set2['latency'] = long(l[1])
++        self.set2['cputime'] = int(l[0])
++        self.set2['latency'] = int(l[1])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+diff --git a/plugins/dstat_dstat_mem.py b/plugins/dstat_dstat_mem.py
+index c062a0b..1c6dc93 100644
+--- a/plugins/dstat_dstat_mem.py
++++ b/plugins/dstat_dstat_mem.py
+@@ -18,11 +18,11 @@ class dstat_plugin(dstat):
+     def extract(self):
+         l = self.splitline()
+ #        l = linecache.getline('/proc/%s/schedstat' % self.pid, 1).split()
+-        self.val['virtual'] = long(l[0]) * pagesize / 1024
+-        self.val['resident'] = long(l[1]) * pagesize / 1024
+-        self.val['shared'] = long(l[2]) * pagesize / 1024
++        self.val['virtual'] = int(l[0]) * pagesize / 1024
++        self.val['resident'] = int(l[1]) * pagesize / 1024
++        self.val['shared'] = int(l[2]) * pagesize / 1024
+ #        self.val['text'] = long(l[3]) * pagesize / 1024
+ #        self.val['library'] = long(l[4]) * pagesize / 1024
+-        self.val['data'] = long(l[5]) * pagesize / 1024
++        self.val['data'] = int(l[5]) * pagesize / 1024
+ 
+ # vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_fan.py b/plugins/dstat_fan.py
+index fef79d9..d9eed55 100644
+--- a/plugins/dstat_fan.py
++++ b/plugins/dstat_fan.py
+@@ -21,7 +21,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.path.exists('/proc/acpi/ibm/fan'):
+-            raise Exception, 'Needs kernel IBM-ACPI support'
++            raise Exception('Needs kernel IBM-ACPI support')
+ 
+     def extract(self):
+         if os.path.exists('/proc/acpi/ibm/fan'):
+diff --git a/plugins/dstat_freespace.py b/plugins/dstat_freespace.py
+index 9d9279d..f4a7071 100755
+--- a/plugins/dstat_freespace.py
++++ b/plugins/dstat_freespace.py
+@@ -17,7 +17,7 @@ class dstat_plugin(dstat):
+         ret = []
+         for l in self.splitlines():
+             if len(l) < 6: continue
+-            if l[2] in ('binfmt_misc', 'devpts', 'iso9660', 'none', 'proc', 'sysfs', 'usbfs', 'cgroup', 'tmpfs', 'devtmpfs', 'debugfs', 'mqueue', 'systemd-1', 'rootfs', 'autofs'): continue
++            if l[2] in ('binfmt_misc', 'devpts', 'iso9660', 'none', 'proc', 'sysfs', 'usbfs', 'cgroup', 'tmpfs', 'devtmpfs', 'debugfs', 'mqueue', 'systemd-1', 'rootfs', 'autofs', 'overlay', 'nsfs'): continue
+             ### FIXME: Excluding 'none' here may not be what people want (/dev/shm)
+             if l[0] in ('devpts', 'none', 'proc', 'sunrpc', 'usbfs', 'securityfs', 'hugetlbfs', 'configfs', 'selinuxfs', 'pstore', 'nfsd'): continue
+             name = l[1]
+@@ -35,7 +35,7 @@ class dstat_plugin(dstat):
+         self.val['total'] = (0, 0)
+         for name in self.vars:
+             res = os.statvfs(name)
+-            self.val[name] = ( (float(res.f_blocks) - float(res.f_bavail)) * long(res.f_frsize), float(res.f_bavail) * float(res.f_frsize) )
++            self.val[name] = ( (float(res.f_blocks) - float(res.f_bavail)) * int(res.f_frsize), float(res.f_bavail) * float(res.f_frsize) )
+             self.val['total'] = (self.val['total'][0] + self.val[name][0], self.val['total'][1] + self.val[name][1])
+ 
+ # vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_fuse.py b/plugins/dstat_fuse.py
+index 35a8476..b8a4cd2 100644
+--- a/plugins/dstat_fuse.py
++++ b/plugins/dstat_fuse.py
+@@ -17,9 +17,9 @@ class dstat_plugin(dstat):
+         info(1, "Module %s is still experimental." % self.filename)
+ 
+         if not os.path.exists(self.fusectl_path):
+-            raise Exception, "%s not mounted" % self.fusectl_path
++            raise Exception("%s not mounted" % self.fusectl_path)
+         if len(os.listdir(self.fusectl_path)) == 0:
+-            raise Exception, "No fuse filesystems mounted"
++            raise Exception("No fuse filesystems mounted")
+ 
+     def vars(self):
+         self.dirs = os.listdir(self.fusectl_path)
+@@ -30,7 +30,7 @@ class dstat_plugin(dstat):
+                 atleast_one_ok = True
+ 
+         if not atleast_one_ok:
+-            raise Exception, "User is not root or no fuse filesystems mounted"
++            raise Exception("User is not root or no fuse filesystems mounted")
+ 
+         return self.dirs
+ 
+@@ -39,7 +39,7 @@ class dstat_plugin(dstat):
+             path = self.fusectl_path + d + "/waiting"
+             if os.path.exists(path):
+                 line = dopen(path).readline()
+-                self.val[d] = long(line)
++                self.val[d] = int(line)
+             else:
+                 self.val[d] = 0
+ 
+diff --git a/plugins/dstat_gpfs.py b/plugins/dstat_gpfs.py
+index c59828a..7c7fdf0 100644
+--- a/plugins/dstat_gpfs.py
++++ b/plugins/dstat_gpfs.py
+@@ -17,9 +17,9 @@ class dstat_plugin(dstat):
+                 self.stdin.write('reset\n')
+                 readpipe(self.stdout)
+             except IOError:
+-                raise Exception, 'Cannot interface with gpfs mmpmon binary'
++                raise Exception('Cannot interface with gpfs mmpmon binary')
+             return True
+-        raise Exception, 'Needs GPFS mmpmon binary'
++        raise Exception('Needs GPFS mmpmon binary')
+ 
+     def extract(self):
+         try:
+@@ -29,14 +29,14 @@ class dstat_plugin(dstat):
+                 if not line: continue
+                 l = line.split()
+                 for name in self.vars:
+-                    self.set2[name] = long(l[l.index(name)+1])
++                    self.set2[name] = int(l[l.index(name)+1])
+             for name in self.vars:
+                 self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+-        except IOError, e:
+-            if op.debug > 1: print '%s: lost pipe to mmpmon, %s' % (self.filename, e)
++        except IOError as e:
++            if op.debug > 1: print('%s: lost pipe to mmpmon, %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+-        except Exception, e:
+-            if op.debug > 1: print '%s: exception %s' % (self.filename, e)
++        except Exception as e:
++            if op.debug > 1: print('%s: exception %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+         if step == op.delay:
+diff --git a/plugins/dstat_gpfs_ops.py b/plugins/dstat_gpfs_ops.py
+index c264fe6..278b46f 100644
+--- a/plugins/dstat_gpfs_ops.py
++++ b/plugins/dstat_gpfs_ops.py
+@@ -20,9 +20,9 @@ class dstat_plugin(dstat):
+                 self.stdin.write('reset\n')
+                 readpipe(self.stdout)
+             except IOError:
+-                raise Exception, 'Cannot interface with gpfs mmpmon binary'
++                raise Exception('Cannot interface with gpfs mmpmon binary')
+             return True
+-        raise Exception, 'Needs GPFS mmpmon binary'
++        raise Exception('Needs GPFS mmpmon binary')
+ 
+     def extract(self):
+         try:
+@@ -32,14 +32,14 @@ class dstat_plugin(dstat):
+                 if not line: continue
+                 l = line.split()
+                 for name in self.vars:
+-                    self.set2[name] = long(l[l.index(name)+1])
++                    self.set2[name] = int(l[l.index(name)+1])
+             for name in self.vars:
+                 self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+-        except IOError, e:
+-            if op.debug > 1: print '%s: lost pipe to mmpmon, %s' % (self.filename, e)
++        except IOError as e:
++            if op.debug > 1: print('%s: lost pipe to mmpmon, %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+-        except Exception, e:
+-            if op.debug > 1: print '%s: exception %s' % (self.filename, e)
++        except Exception as e:
++            if op.debug > 1: print('%s: exception %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+         if step == op.delay:
+diff --git a/plugins/dstat_ib.py b/plugins/dstat_ib.py
+index d8db17b..0ce8224 100644
+--- a/plugins/dstat_ib.py
++++ b/plugins/dstat_ib.py
+@@ -46,7 +46,7 @@ class dstat_plugin(dstat):
+             if name in self.discover + ['total']:
+                 ret.append(name)
+         if not ret:
+-            raise Exception, "No suitable network interfaces found to monitor"
++            raise Exception("No suitable network interfaces found to monitor")
+         return ret
+ 
+     def name(self):
+@@ -66,8 +66,8 @@ class dstat_plugin(dstat):
+             xmit_lines = dopen(xmit_counter_name).readlines()
+             if len(rcv_lines) < 1 or len(xmit_lines) < 1:
+                 continue
+-            rcv_value = long(rcv_lines[0])
+-            xmit_value = long(xmit_lines[0])
++            rcv_value = int(rcv_lines[0])
++            xmit_value = int(xmit_lines[0])
+             if name in self.vars :
+                 self.set2[name] = (rcv_value, xmit_value)
+             self.set2['total'] = ( self.set2['total'][0] + rcv_value, self.set2['total'][1] + xmit_value)
+diff --git a/plugins/dstat_innodb_buffer.py b/plugins/dstat_innodb_buffer.py
+index 73a901b..e092a95 100644
+--- a/plugins/dstat_innodb_buffer.py
++++ b/plugins/dstat_innodb_buffer.py
+@@ -14,11 +14,11 @@ class dstat_plugin(dstat):
+ 
+     def check(self): 
+         if not os.access('/usr/bin/mysql', os.X_OK):
+-            raise Exception, 'Needs MySQL binary'
++            raise Exception('Needs MySQL binary')
+         try:
+             self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n %s' % mysql_options)
+-        except IOError, e:
+-            raise Exception, 'Cannot interface with MySQL binary (%s)' % e
++        except IOError as e:
++            raise Exception('Cannot interface with MySQL binary (%s)' % e)
+ 
+     def extract(self):
+         try:
+@@ -37,12 +37,12 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except IOError, e:
+-            if op.debug > 1: print '%s: lost pipe to mysql, %s' % (self.filename, e)
++        except IOError as e:
++            if op.debug > 1: print('%s: lost pipe to mysql, %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+-        except Exception, e:
+-            if op.debug > 1: print '%s: exception: %s' % (self.filename, e)
++        except Exception as e:
++            if op.debug > 1: print('%s: exception: %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+ # vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_innodb_io.py b/plugins/dstat_innodb_io.py
+index d5c6b01..10b5036 100644
+--- a/plugins/dstat_innodb_io.py
++++ b/plugins/dstat_innodb_io.py
+@@ -17,9 +17,9 @@ class dstat_plugin(dstat):
+             try:
+                 self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n %s' % mysql_options)
+             except IOError:
+-                raise Exception, 'Cannot interface with MySQL binary'
++                raise Exception('Cannot interface with MySQL binary')
+             return True
+-        raise Exception, 'Needs MySQL binary'
++        raise Exception('Needs MySQL binary')
+ 
+     def extract(self):
+         try:
+@@ -38,12 +38,12 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except IOError, e:
+-            if op.debug > 1: print '%s: lost pipe to mysql, %s' % (self.filename, e)
++        except IOError as e:
++            if op.debug > 1: print('%s: lost pipe to mysql, %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+-        except Exception, e:
+-            if op.debug > 1: print '%s: exception' % (self.filename, e)
++        except Exception as e:
++            if op.debug > 1: print('%s: exception' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+ # vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_innodb_ops.py b/plugins/dstat_innodb_ops.py
+index f066ff9..4216d14 100644
+--- a/plugins/dstat_innodb_ops.py
++++ b/plugins/dstat_innodb_ops.py
+@@ -17,9 +17,9 @@ class dstat_plugin(dstat):
+             try:
+                 self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n %s' % mysql_options)
+             except IOError:
+-                raise Exception, 'Cannot interface with MySQL binary'
++                raise Exception('Cannot interface with MySQL binary')
+             return True
+-        raise Exception, 'Needs MySQL binary'
++        raise Exception('Needs MySQL binary')
+ 
+     def extract(self):
+         try:
+@@ -39,12 +39,12 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except IOError, e:
+-            if op.debug > 1: print '%s: lost pipe to mysql, %s' % (self.filename, e)
++        except IOError as e:
++            if op.debug > 1: print('%s: lost pipe to mysql, %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+-        except Exception, e:
+-            if op.debug > 1: print '%s: exception' % (self.filename, e)
++        except Exception as e:
++            if op.debug > 1: print('%s: exception' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+ # vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_jvm_full.py b/plugins/dstat_jvm_full.py
+index 2afa9da..575618a 100644
+--- a/plugins/dstat_jvm_full.py
++++ b/plugins/dstat_jvm_full.py
+@@ -110,15 +110,15 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except IOError, e:
++        except IOError as e:
+             if op.debug > 1:
+-                print '%s: lost pipe to jstat, %s' % (self.filename, e)
++                print('%s: lost pipe to jstat, %s' % (self.filename, e))
+             for name in self.vars:
+                 self.val[name] = -1
+ 
+-        except Exception, e:
++        except Exception as e:
+             if op.debug > 1:
+-                print '%s: exception' % e
++                print('%s: exception' % e)
+             for name in self.vars:
+                 self.val[name] = -1
+ 
+diff --git a/plugins/dstat_jvm_vm.py b/plugins/dstat_jvm_vm.py
+index 7d7f08a..48a1ea1 100644
+--- a/plugins/dstat_jvm_vm.py
++++ b/plugins/dstat_jvm_vm.py
+@@ -72,15 +72,15 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except IOError, e:
++        except IOError as e:
+             if op.debug > 1:
+-                print '%s: lost pipe to jstat, %s' % (self.filename, e)
++                print('%s: lost pipe to jstat, %s' % (self.filename, e))
+             for name in self.vars:
+                 self.val[name] = -1
+ 
+-        except Exception, e:
++        except Exception as e:
+             if op.debug > 1:
+-                print '%s: exception' % e
++                print('%s: exception' % e)
+             for name in self.vars:
+                 self.val[name] = -1
+ 
+diff --git a/plugins/dstat_lustre.py b/plugins/dstat_lustre.py
+index d19861b..379dd7b 100644
+--- a/plugins/dstat_lustre.py
++++ b/plugins/dstat_lustre.py
+@@ -7,7 +7,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.path.exists('/proc/fs/lustre/llite'):
+-            raise Exception, 'Lustre filesystem not found'
++            raise Exception('Lustre filesystem not found')
+         info(1, 'Module %s is still experimental.' % self.filename)
+ 
+     def name(self):
+@@ -22,12 +22,12 @@ class dstat_plugin(dstat):
+                 l = line.split()
+                 if len(l) < 6: continue
+                 if l[0] == 'read_bytes':
+-                    read = long(l[6])
++                    read = int(l[6])
+                 elif l[0] == 'write_bytes':
+-                    write = long(l[6])
++                    write = int(l[6])
+             self.set2[name] = (read, write)
+ 
+-            self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
++            self.val[name] = list(map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+diff --git a/plugins/dstat_md_status.py b/plugins/dstat_md_status.py
+index 6fe575a..75c1a2e 100644
+--- a/plugins/dstat_md_status.py
++++ b/plugins/dstat_md_status.py
+@@ -23,7 +23,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.path.exists('/proc/mdstat'):
+-            raise Exception, 'Needs kernel md support'
++            raise Exception('Needs kernel md support')
+ 
+     def extract(self):
+         pct = 0
+diff --git a/plugins/dstat_memcache_hits.py b/plugins/dstat_memcache_hits.py
+index cfef932..ca70a58 100755
+--- a/plugins/dstat_memcache_hits.py
++++ b/plugins/dstat_memcache_hits.py
+@@ -20,9 +20,9 @@ class dstat_plugin(dstat):
+             import memcache
+             self.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
+         except:
+-            raise Exception, 'Plugin needs the memcache module'
++            raise Exception('Plugin needs the memcache module')
+ 
+     def extract(self):
+         stats = self.mc.get_stats()
+         for key in self.vars:
+-            self.val[key] = long(stats[0][1][key])
++            self.val[key] = int(stats[0][1][key])
+diff --git a/plugins/dstat_mongodb_conn.py b/plugins/dstat_mongodb_conn.py
+index d4f7ef6..41a7170 100644
+--- a/plugins/dstat_mongodb_conn.py
++++ b/plugins/dstat_mongodb_conn.py
+@@ -22,8 +22,8 @@ class dstat_plugin(dstat):
+       if mongodb_pwd:
+         self.m.admin.authenticate(mongodb_user, mongodb_pwd)
+       self.db = self.m.admin
+-    except Exception, e:
+-      raise Exception, 'Cannot interface with MongoDB server: %s' % e
++    except Exception as e:
++      raise Exception('Cannot interface with MongoDB server: %s' % e)
+ 
+     self.name    = 'mongodb con'
+     self.nick    = ('curr', 'avail')
+@@ -37,7 +37,7 @@ class dstat_plugin(dstat):
+     status = self.db.command("serverStatus")
+ 
+     for name in self.vars:
+-      self.val[name] = (long(self.getDoc(status, name)))
++      self.val[name] = (int(self.getDoc(status, name)))
+ 
+   def getDoc(self, dic, doc):
+     par = doc.split('.')
+diff --git a/plugins/dstat_mongodb_mem.py b/plugins/dstat_mongodb_mem.py
+index 8ea19d2..9422d3f 100644
+--- a/plugins/dstat_mongodb_mem.py
++++ b/plugins/dstat_mongodb_mem.py
+@@ -22,8 +22,8 @@ class dstat_plugin(dstat):
+       if mongodb_pwd:
+         self.m.admin.authenticate(mongodb_user, mongodb_pwd)
+       self.db = self.m.admin
+-    except Exception, e:
+-      raise Exception, 'Cannot interface with MongoDB server: %s' % e
++    except Exception as e:
++      raise Exception('Cannot interface with MongoDB server: %s' % e)
+ 
+     line = self.db.command("serverStatus")
+     if 'storageEngine' in line:
+@@ -50,11 +50,11 @@ class dstat_plugin(dstat):
+     for name in self.vars:
+       if name in ('extra_info.page_faults'):
+         if not name in self.lastVal:
+-          self.lastVal[name] = long(self.getDoc(status, name))
+-        self.val[name] = (long(self.getDoc(status, name)) - self.lastVal[name])
++          self.lastVal[name] = int(self.getDoc(status, name))
++        self.val[name] = (int(self.getDoc(status, name)) - self.lastVal[name])
+         self.lastVal[name] = self.getDoc(status, name)
+       else:
+-        self.val[name] = (long(self.getDoc(status, name)))
++        self.val[name] = (int(self.getDoc(status, name)))
+ 
+ 
+ 
+diff --git a/plugins/dstat_mongodb_opcount.py b/plugins/dstat_mongodb_opcount.py
+index 1e5e1c3..5a5c89a 100644
+--- a/plugins/dstat_mongodb_opcount.py
++++ b/plugins/dstat_mongodb_opcount.py
+@@ -22,8 +22,8 @@ class dstat_plugin(dstat):
+       if mongodb_pwd:
+         self.m.admin.authenticate(mongodb_user, mongodb_pwd)
+       self.db = self.m.admin
+-    except Exception, e:
+-      raise Exception, 'Cannot interface with MongoDB server: %s' % e
++    except Exception as e:
++      raise Exception('Cannot interface with MongoDB server: %s' % e)
+ 
+     self.name    = 'mongodb counts'
+     self.nick    = ('qry', 'ins', 'upd', 'del', 'gtm', 'cmd')
+@@ -38,9 +38,9 @@ class dstat_plugin(dstat):
+     opct = status['opcounters']
+ 
+     for name in self.vars:
+-      if name in opct.iterkeys():
++      if name in iter(opct.keys()):
+         if not name in self.lastVal:
+           self.lastVal[name] = opct.get(name)
+ 
+-        self.val[name]     = (long(opct.get(name)) - self.lastVal[name]) / elapsed
++        self.val[name]     = (int(opct.get(name)) - self.lastVal[name]) / elapsed
+         self.lastVal[name] = opct.get(name)
+diff --git a/plugins/dstat_mongodb_queue.py b/plugins/dstat_mongodb_queue.py
+index 8fa753b..492f70c 100644
+--- a/plugins/dstat_mongodb_queue.py
++++ b/plugins/dstat_mongodb_queue.py
+@@ -22,8 +22,8 @@ class dstat_plugin(dstat):
+       if mongodb_pwd:
+         self.m.admin.authenticate(mongodb_user, mongodb_pwd)
+       self.db = self.m.admin
+-    except Exception, e:
+-      raise Exception, 'Cannot interface with MongoDB server: %s' % e
++    except Exception as e:
++      raise Exception('Cannot interface with MongoDB server: %s' % e)
+ 
+     self.name    = 'mongodb queues'
+     self.nick    = ('ar', 'aw', 'qt', 'qw')
+@@ -39,7 +39,7 @@ class dstat_plugin(dstat):
+     alock = glock['activeClients']
+     qlock = glock['currentQueue']
+ 
+-    self.val['ar'] = long(alock['readers'])
+-    self.val['aw'] = long(alock['writers'])
+-    self.val['qr'] = long(qlock['readers'])
+-    self.val['qw'] = long(qlock['writers'])
++    self.val['ar'] = int(alock['readers'])
++    self.val['aw'] = int(alock['writers'])
++    self.val['qr'] = int(qlock['readers'])
++    self.val['qw'] = int(qlock['writers'])
+diff --git a/plugins/dstat_mongodb_stats.py b/plugins/dstat_mongodb_stats.py
+index 2429e89..48262c7 100644
+--- a/plugins/dstat_mongodb_stats.py
++++ b/plugins/dstat_mongodb_stats.py
+@@ -22,8 +22,8 @@ class dstat_plugin(dstat):
+       if mongodb_pwd:
+         self.m.admin.authenticate(mongodb_user, mongodb_pwd)
+       self.db = self.m.admin
+-    except Exception, e:
+-      raise Exception, 'Cannot interface with MongoDB server: %s' % e
++    except Exception as e:
++      raise Exception('Cannot interface with MongoDB server: %s' % e)
+ 
+     stats  = self.db.command("listDatabases")
+     self.dbList = []
+@@ -67,5 +67,5 @@ class dstat_plugin(dstat):
+       self.db = self.m.get_database(db)
+       stats = self.db.command("dbStats")
+       for name in self.vars:
+-        self.set[name] += long(stats.get(name)) / (1024 * 1024)
++        self.set[name] += int(stats.get(name)) / (1024 * 1024)
+     self.val = self.set
+diff --git a/plugins/dstat_mysql5_cmds.py b/plugins/dstat_mysql5_cmds.py
+index 2b062dd..6bcd9c2 100644
+--- a/plugins/dstat_mysql5_cmds.py
++++ b/plugins/dstat_mysql5_cmds.py
+@@ -44,8 +44,8 @@ class dstat_plugin(dstat):
+                 args['unix_socket'] = mysql_socket
+ 
+             self.db = MySQLdb.connect(**args)
+-        except Exception, e:
+-            raise Exception, 'Cannot interface with MySQL server: %s' % e
++        except Exception as e:
++            raise Exception('Cannot interface with MySQL server: %s' % e)
+ 
+     def extract(self):
+         try:
+@@ -55,8 +55,8 @@ class dstat_plugin(dstat):
+                 line = c.fetchone()
+                 if line[0] in self.vars:
+                     if line[0] + 'raw' in self.set2:
+-                        self.set2[line[0]] = long(line[1]) - self.set2[line[0] + 'raw']
+-                    self.set2[line[0] + 'raw'] = long(line[1])
++                        self.set2[line[0]] = int(line[1]) - self.set2[line[0] + 'raw']
++                    self.set2[line[0] + 'raw'] = int(line[1])
+ 
+             for name in self.vars:
+                 self.val[name] = self.set2[name] * 1.0 / elapsed
+@@ -64,6 +64,6 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except Exception, e:
++        except Exception as e:
+             for name in self.vars:
+                 self.val[name] = -1
+diff --git a/plugins/dstat_mysql5_conn.py b/plugins/dstat_mysql5_conn.py
+index 13feb80..94405bf 100644
+--- a/plugins/dstat_mysql5_conn.py
++++ b/plugins/dstat_mysql5_conn.py
+@@ -45,8 +45,8 @@ class dstat_plugin(dstat):
+                 args['unix_socket'] = mysql_socket
+ 
+             self.db = MySQLdb.connect(**args)
+-        except Exception, e:
+-            raise Exception, 'Cannot interface with MySQL server, %s' % e
++        except Exception as e:
++            raise Exception('Cannot interface with MySQL server, %s' % e)
+ 
+     def extract(self):
+         try:
+@@ -65,7 +65,7 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except Exception, e:
++        except Exception as e:
+             for name in self.vars:
+                 self.val[name] = -1
+ 
+diff --git a/plugins/dstat_mysql5_innodb.py b/plugins/dstat_mysql5_innodb.py
+index a8e163e..79f8296 100644
+--- a/plugins/dstat_mysql5_innodb.py
++++ b/plugins/dstat_mysql5_innodb.py
+@@ -85,9 +85,9 @@ class dstat_plugin(dstat):
+             try:
+                 self.stdin, self.stdout, self.stderr = dpopen('%s -n %s' % (mysql_cmd, mysql_options))
+             except IOError:
+-                raise Exception, 'Cannot interface with MySQL binary'
++                raise Exception('Cannot interface with MySQL binary')
+             return True
+-        raise Exception, 'Needs MySQL binary'
++        raise Exception('Needs MySQL binary')
+ 
+     def extract(self):
+         try:
+@@ -112,11 +112,11 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except IOError, e:
+-            if op.debug > 1: print '%s: lost pipe to mysql, %s' % (self.filename, e)
++        except IOError as e:
++            if op.debug > 1: print(('%s: lost pipe to mysql, %s' % (self.filename, e)))
+             for name in self.vars: self.val[name] = -1
+ 
+-        except Exception, e:
+-            if op.debug > 1: print '%s: exception' % (self.filename, e)
++        except Exception as e:
++            if op.debug > 1: print(('%s: exception' % (self.filename, e)))
+             for name in self.vars: self.val[name] = -1
+ 
+diff --git a/plugins/dstat_mysql5_io.py b/plugins/dstat_mysql5_io.py
+index 332af43..7a6dd5f 100644
+--- a/plugins/dstat_mysql5_io.py
++++ b/plugins/dstat_mysql5_io.py
+@@ -43,7 +43,7 @@ class dstat_plugin(dstat):
+ 
+             self.db = MySQLdb.connect(**args)
+         except:
+-            raise Exception, 'Cannot interface with MySQL server'
++            raise Exception('Cannot interface with MySQL server')
+ 
+     def extract(self):
+         try:
+@@ -63,7 +63,7 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except Exception, e:
++        except Exception as e:
+             for name in self.vars:
+                 self.val[name] = -1
+ 
+diff --git a/plugins/dstat_mysql5_keys.py b/plugins/dstat_mysql5_keys.py
+index 35b2843..e4889e5 100644
+--- a/plugins/dstat_mysql5_keys.py
++++ b/plugins/dstat_mysql5_keys.py
+@@ -46,7 +46,7 @@ class dstat_plugin(dstat):
+ 
+             self.db = MySQLdb.connect(**args)
+         except:
+-            raise Exception, 'Cannot interface with MySQL server'
++            raise Exception('Cannot interface with MySQL server')
+ 
+     def extract(self):
+         try:
+@@ -64,7 +64,7 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except Exception, e:
++        except Exception as e:
+             for name in self.vars:
+                 self.val[name] = -1
+ 
+diff --git a/plugins/dstat_mysql_io.py b/plugins/dstat_mysql_io.py
+index 194be14..4f0d8b7 100644
+--- a/plugins/dstat_mysql_io.py
++++ b/plugins/dstat_mysql_io.py
+@@ -9,11 +9,11 @@ class dstat_plugin(dstat):
+ 
+     def check(self): 
+         if not os.access('/usr/bin/mysql', os.X_OK):
+-            raise Exception, 'Needs MySQL binary'
++            raise Exception('Needs MySQL binary')
+         try:
+             self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n %s' % mysql_options)
+         except IOError:
+-            raise Exception, 'Cannot interface with MySQL binary'
++            raise Exception('Cannot interface with MySQL binary')
+ 
+     def extract(self):
+         try:
+@@ -30,12 +30,12 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except IOError, e:
+-            if op.debug > 1: print '%s: lost pipe to mysql, %s' % (self.filename, e)
++        except IOError as e:
++            if op.debug > 1: print('%s: lost pipe to mysql, %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+-        except Exception, e:
+-            if op.debug > 1: print 'dstat_innodb_buffer: exception', e
++        except Exception as e:
++            if op.debug > 1: print('dstat_innodb_buffer: exception', e)
+             for name in self.vars: self.val[name] = -1
+ 
+ # vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_mysql_keys.py b/plugins/dstat_mysql_keys.py
+index 4fbd80e..763e3cb 100644
+--- a/plugins/dstat_mysql_keys.py
++++ b/plugins/dstat_mysql_keys.py
+@@ -12,11 +12,11 @@ class dstat_plugin(dstat):
+ 
+     def check(self): 
+         if not os.access('/usr/bin/mysql', os.X_OK):
+-            raise Exception, 'Needs MySQL binary'
++            raise Exception('Needs MySQL binary')
+         try:
+             self.stdin, self.stdout, self.stderr = dpopen('/usr/bin/mysql -n %s' % mysql_options)
+         except IOError:
+-            raise Exception, 'Cannot interface with MySQL binary'
++            raise Exception('Cannot interface with MySQL binary')
+ 
+     def extract(self):
+         try:
+@@ -33,12 +33,12 @@ class dstat_plugin(dstat):
+             if step == op.delay:
+                 self.set1.update(self.set2)
+ 
+-        except IOError, e:
+-            if op.debug > 1: print '%s: lost pipe to mysql, %s' % (self.filename, e)
++        except IOError as e:
++            if op.debug > 1: print('%s: lost pipe to mysql, %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+-        except Exception, e:
+-            if op.debug > 1: print '%s: exception' (self.filename, e)
++        except Exception as e:
++            if op.debug > 1: print('%s: exception' (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+ # vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_net_packets.py b/plugins/dstat_net_packets.py
+index cd189c0..96a3ca5 100644
+--- a/plugins/dstat_net_packets.py
++++ b/plugins/dstat_net_packets.py
+@@ -40,7 +40,7 @@ class dstat_plugin(dstat):
+             if name in self.discover + ['total', 'lo']:
+                 ret.append(name)
+         if not ret:
+-            raise Exception, "No suitable network interfaces found to monitor"
++            raise Exception("No suitable network interfaces found to monitor")
+         return ret
+ 
+     def name(self):
+@@ -53,13 +53,13 @@ class dstat_plugin(dstat):
+             if l[2] == '0' and l[10] == '0': continue
+             name = l[0]
+             if name in self.vars :
+-                self.set2[name] = ( long(l[2]), long(l[10]) )
++                self.set2[name] = ( int(l[2]), int(l[10]) )
+             if not self.totalfilter.match(name):
+-                self.set2['total'] = ( self.set2['total'][0] + long(l[2]), self.set2['total'][1] + long(l[10]))
++                self.set2['total'] = ( self.set2['total'][0] + int(l[2]), self.set2['total'][1] + int(l[10]))
+ 
+         if update:
+             for name in self.set2:
+-                self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
++                self.val[name] = list(map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+diff --git a/plugins/dstat_nfs3.py b/plugins/dstat_nfs3.py
+index 5c3c97a..e2ca50f 100644
+--- a/plugins/dstat_nfs3.py
++++ b/plugins/dstat_nfs3.py
+@@ -13,12 +13,12 @@ class dstat_plugin(dstat):
+     def extract(self):
+         for l in self.splitlines():
+             if not l or l[0] != 'proc3': continue
+-            self.set2['read'] = long(l[8])
+-            self.set2['write'] = long(l[9])
+-            self.set2['readdir'] = long(l[18]) + long(l[19])
+-            self.set2['other'] = long(l[3]) + long(l[4]) + long(l[5]) + long(l[6]) + long(l[7]) + long(l[10]) + long(l[11]) + long(l[12]) + long(l[13]) + long(l[14]) + long(l[15]) + long(l[16]) + long(l[17])
+-            self.set2['filesystem'] = long(l[20]) + long(l[21]) + long(l[22])
+-            self.set2['commit'] = long(l[23])
++            self.set2['read'] = int(l[8])
++            self.set2['write'] = int(l[9])
++            self.set2['readdir'] = int(l[18]) + int(l[19])
++            self.set2['other'] = int(l[3]) + int(l[4]) + int(l[5]) + int(l[6]) + int(l[7]) + int(l[10]) + int(l[11]) + int(l[12]) + int(l[13]) + int(l[14]) + int(l[15]) + int(l[16]) + int(l[17])
++            self.set2['filesystem'] = int(l[20]) + int(l[21]) + int(l[22])
++            self.set2['commit'] = int(l[23])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+diff --git a/plugins/dstat_nfs3_ops.py b/plugins/dstat_nfs3_ops.py
+index 5151960..62726f0 100644
+--- a/plugins/dstat_nfs3_ops.py
++++ b/plugins/dstat_nfs3_ops.py
+@@ -17,7 +17,7 @@ class dstat_plugin(dstat):
+         for l in self.splitlines():
+             if not l or l[0] != 'proc3': continue
+             for i, name in enumerate(self.vars):
+-                self.set2[name] = long(l[i+2])
++                self.set2[name] = int(l[i+2])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+diff --git a/plugins/dstat_nfsd3.py b/plugins/dstat_nfsd3.py
+index ce98fe4..e5f4141 100644
+--- a/plugins/dstat_nfsd3.py
++++ b/plugins/dstat_nfsd3.py
+@@ -16,12 +16,12 @@ class dstat_plugin(dstat):
+     def extract(self):
+         for l in self.splitlines():
+             if not l or l[0] != 'proc3': continue
+-            self.set2['read'] = long(l[8])
+-            self.set2['write'] = long(l[9])
+-            self.set2['readdir'] = long(l[18]) + long(l[19])
+-            self.set2['inode'] = long(l[3]) + long(l[4]) + long(l[5]) + long(l[6]) + long(l[7]) + long(l[10]) + long(l[11]) + long(l[12]) + long(l[13]) + long(l[14]) + long(l[15]) + long(l[16]) + long(l[17])
+-            self.set2['filesystem'] = long(l[20]) + long(l[21]) + long(l[22])
+-            self.set2['commit'] = long(l[23])
++            self.set2['read'] = int(l[8])
++            self.set2['write'] = int(l[9])
++            self.set2['readdir'] = int(l[18]) + int(l[19])
++            self.set2['inode'] = int(l[3]) + int(l[4]) + int(l[5]) + int(l[6]) + int(l[7]) + int(l[10]) + int(l[11]) + int(l[12]) + int(l[13]) + int(l[14]) + int(l[15]) + int(l[16]) + int(l[17])
++            self.set2['filesystem'] = int(l[20]) + int(l[21]) + int(l[22])
++            self.set2['commit'] = int(l[23])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+diff --git a/plugins/dstat_nfsd3_ops.py b/plugins/dstat_nfsd3_ops.py
+index 33ae0c2..5b505c3 100644
+--- a/plugins/dstat_nfsd3_ops.py
++++ b/plugins/dstat_nfsd3_ops.py
+@@ -17,7 +17,7 @@ class dstat_plugin(dstat):
+         for l in self.splitlines():
+             if not l or l[0] != 'proc3': continue
+             for i, name in enumerate(self.vars):
+-                self.set2[name] = long(l[i+2])
++                self.set2[name] = int(l[i+2])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+diff --git a/plugins/dstat_ntp.py b/plugins/dstat_ntp.py
+index dfb0bdc..8a34e9c 100644
+--- a/plugins/dstat_ntp.py
++++ b/plugins/dstat_ntp.py
+@@ -28,7 +28,7 @@ class dstat_plugin(dstat):
+         self.type = 's'
+         self.width = len(time.strftime(self.timefmt, time.localtime()))
+         self.scale = 0
+-        self.epoch = 2208988800L
++        self.epoch = 2208988800
+ #        socket.setdefaulttimeout(0.25)
+         self.socket = socket.socket( socket.AF_INET, socket.SOCK_DGRAM )
+         self.socket.settimeout(0.25)
+@@ -42,9 +42,9 @@ class dstat_plugin(dstat):
+         try:
+             self.gettime()
+         except socket.gaierror:
+-            raise Exception, 'Failed to connect to NTP server %s.' % self.ntpserver
++            raise Exception('Failed to connect to NTP server %s.' % self.ntpserver)
+         except socket.error:
+-            raise Exception, 'Error connecting to NTP server %s.' % self.ntpserver
++            raise Exception('Error connecting to NTP server %s.' % self.ntpserver)
+ 
+     def extract(self):
+         try:
+diff --git a/plugins/dstat_postfix.py b/plugins/dstat_postfix.py
+index b03203f..9995a68 100755
+--- a/plugins/dstat_postfix.py
++++ b/plugins/dstat_postfix.py
+@@ -11,7 +11,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.access('/var/spool/postfix/active', os.R_OK):
+-            raise Exception, 'Cannot access postfix queues'
++            raise Exception('Cannot access postfix queues')
+ 
+     def extract(self):
+         for item in self.vars:
+diff --git a/plugins/dstat_power.py b/plugins/dstat_power.py
+index c44dcc4..b23c72d 100644
+--- a/plugins/dstat_power.py
++++ b/plugins/dstat_power.py
+@@ -27,7 +27,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not self.batteries:
+-            raise Exception, 'No battery information found, no power usage statistics'
++            raise Exception('No battery information found, no power usage statistics')
+ 
+     def extract(self):
+         amperes_drawn = 0
+diff --git a/plugins/dstat_qmail.py b/plugins/dstat_qmail.py
+index fd7e706..2f70257 100644
+--- a/plugins/dstat_qmail.py
++++ b/plugins/dstat_qmail.py
+@@ -15,7 +15,7 @@ class dstat_plugin(dstat):
+     def check(self):
+         for item in self.vars:
+             if not os.access('/var/qmail/queue/'+item, os.R_OK):
+-                raise Exception, 'Cannot access qmail queues'
++                raise Exception('Cannot access qmail queues')
+ 
+     def extract(self):
+         for item in self.vars:
+diff --git a/plugins/dstat_rpc.py b/plugins/dstat_rpc.py
+index 2c3876d..c1b4f81 100644
+--- a/plugins/dstat_rpc.py
++++ b/plugins/dstat_rpc.py
+@@ -14,7 +14,7 @@ class dstat_plugin(dstat):
+         for l in self.splitlines():
+             if not l or l[0] != 'rpc': continue
+             for i, name in enumerate(self.vars):
+-                self.set2[name] = long(l[i+1])
++                self.set2[name] = int(l[i+1])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+diff --git a/plugins/dstat_rpcd.py b/plugins/dstat_rpcd.py
+index fea2499..546867a 100644
+--- a/plugins/dstat_rpcd.py
++++ b/plugins/dstat_rpcd.py
+@@ -14,7 +14,7 @@ class dstat_plugin(dstat):
+         for l in self.splitlines():
+             if not l or l[0] != 'rpc': continue
+             for i, name in enumerate(self.vars):
+-                self.set2[name] = long(l[i+1])
++                self.set2[name] = int(l[i+1])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+diff --git a/plugins/dstat_sendmail.py b/plugins/dstat_sendmail.py
+index f01ab00..6bc1357 100755
+--- a/plugins/dstat_sendmail.py
++++ b/plugins/dstat_sendmail.py
+@@ -12,7 +12,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.access('/var/spool/mqueue', os.R_OK):
+-            raise Exception, 'Cannot access sendmail queue'
++            raise Exception('Cannot access sendmail queue')
+ 
+     def extract(self):
+         self.val['queue'] = len(glob.glob('/var/spool/mqueue/qf*'))
+diff --git a/plugins/dstat_snmp_cpu.py b/plugins/dstat_snmp_cpu.py
+index 056456a..91055b5 100644
+--- a/plugins/dstat_snmp_cpu.py
++++ b/plugins/dstat_snmp_cpu.py
+@@ -15,7 +15,7 @@ class dstat_plugin(dstat):
+             global cmdgen
+             from pysnmp.entity.rfc3413.oneliner import cmdgen
+         except:
+-            raise Exception, 'Needs pysnmp and pyasn1 modules'
++            raise Exception('Needs pysnmp and pyasn1 modules')
+ 
+     def extract(self):
+         self.set2['usr'] = int(snmpget(self.server, self.community, (1,3,6,1,4,1,2021,11,50,0)))
+diff --git a/plugins/dstat_snmp_load.py b/plugins/dstat_snmp_load.py
+index 6ac58e4..0cc5e16 100644
+--- a/plugins/dstat_snmp_load.py
++++ b/plugins/dstat_snmp_load.py
+@@ -16,9 +16,9 @@ class dstat_plugin(dstat):
+             global cmdgen
+             from pysnmp.entity.rfc3413.oneliner import cmdgen
+         except:
+-            raise Exception, 'Needs pysnmp and pyasn1 modules'
++            raise Exception('Needs pysnmp and pyasn1 modules')
+ 
+     def extract(self):
+-        map(lambda x, y: self.val.update({x: float(y)}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,4,1,2021,10,1,3)))
++        list(map(lambda x, y: self.val.update({x: float(y)}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,4,1,2021,10,1,3))))
+ 
+ # vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_snmp_mem.py b/plugins/dstat_snmp_mem.py
+index cb9f31d..415a2c8 100644
+--- a/plugins/dstat_snmp_mem.py
++++ b/plugins/dstat_snmp_mem.py
+@@ -13,7 +13,7 @@ class dstat_plugin(dstat):
+             global cmdgen
+             from pysnmp.entity.rfc3413.oneliner import cmdgen
+         except:
+-            raise Exception, 'Needs pysnmp and pyasn1 modules'
++            raise Exception('Needs pysnmp and pyasn1 modules')
+ 
+     def extract(self):
+         self.val['MemTotal'] = int(snmpget(self.server, self.community, (1,3,6,1,4,1,2021,4,5,0))) * 1024
+diff --git a/plugins/dstat_snmp_net.py b/plugins/dstat_snmp_net.py
+index df8287e..e2213bd 100644
+--- a/plugins/dstat_snmp_net.py
++++ b/plugins/dstat_snmp_net.py
+@@ -13,7 +13,7 @@ class dstat_plugin(dstat):
+             global cmdgen
+             from pysnmp.entity.rfc3413.oneliner import cmdgen
+         except:
+-            raise Exception, 'Needs pysnmp and pyasn1 modules'
++            raise Exception('Needs pysnmp and pyasn1 modules')
+ 
+     def name(self):
+         return self.vars
+@@ -22,11 +22,11 @@ class dstat_plugin(dstat):
+         return [ str(x) for x in snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,2)) ]
+ 
+     def extract(self):
+-        map(lambda x, y, z: self.set2.update({x: (int(y), int(z))}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,10)), snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,16)))
++        list(map(lambda x, y, z: self.set2.update({x: (int(y), int(z))}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,10)), snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,16))))
+ 
+         if update:
+             for name in self.set2:
+-                self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
++                self.val[name] = list(map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+diff --git a/plugins/dstat_snmp_net_err.py b/plugins/dstat_snmp_net_err.py
+index da68484..a034af3 100644
+--- a/plugins/dstat_snmp_net_err.py
++++ b/plugins/dstat_snmp_net_err.py
+@@ -13,7 +13,7 @@ class dstat_plugin(dstat):
+             global cmdgen
+             from pysnmp.entity.rfc3413.oneliner import cmdgen
+         except:
+-            raise Exception, 'Needs pysnmp and pyasn1 modules'
++            raise Exception('Needs pysnmp and pyasn1 modules')
+ 
+     def name(self):
+         return self.vars
+@@ -22,12 +22,12 @@ class dstat_plugin(dstat):
+         return [ str(x) for x in snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,2)) ]
+ 
+     def extract(self):
+-        map(lambda x, y: self.set2.update({x: (int(y), )}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,20)))
++        list(map(lambda x, y: self.set2.update({x: (int(y), )}), self.vars, snmpwalk(self.server, self.community, (1,3,6,1,2,1,2,2,1,20))))
+ 
+         if update:
+             for name in self.set2:
+ #                self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
+-                self.val[name] = map(lambda x, y: (y - x) * 1.0, self.set1[name], self.set2[name])
++                self.val[name] = list(map(lambda x, y: (y - x) * 1.0, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+diff --git a/plugins/dstat_snmp_sys.py b/plugins/dstat_snmp_sys.py
+index 75e3238..30cbbb1 100644
+--- a/plugins/dstat_snmp_sys.py
++++ b/plugins/dstat_snmp_sys.py
+@@ -16,7 +16,7 @@ class dstat_plugin(dstat):
+             global cmdgen
+             from pysnmp.entity.rfc3413.oneliner import cmdgen
+         except:
+-            raise Exception, 'Needs pysnmp and pyasn1 modules'
++            raise Exception('Needs pysnmp and pyasn1 modules')
+ 
+     def extract(self):
+         self.set2['intr'] = int(snmpget(self.server, self.community, (1,3,6,1,4,1,2021,11,59,0)))
+diff --git a/plugins/dstat_squid.py b/plugins/dstat_squid.py
+index 738517e..c864cf5 100644
+--- a/plugins/dstat_squid.py
++++ b/plugins/dstat_squid.py
+@@ -31,7 +31,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.access('/usr/sbin/squidclient', os.X_OK):
+-            raise Exception, 'Needs squidclient binary'
++            raise Exception('Needs squidclient binary')
+         cmd_test('/usr/sbin/squidclient %s mgr:info' % squidclient_options)
+         return True
+  
+@@ -41,11 +41,11 @@ class dstat_plugin(dstat):
+                 if l[0].strip() in self.vars:
+                     self.val[l[0].strip()] = l[1].strip()
+                     break
+-        except IOError, e:
+-            if op.debug > 1: print '%s: lost pipe to squidclient, %s' % (self.filename, e)
++        except IOError as e:
++            if op.debug > 1: print('%s: lost pipe to squidclient, %s' % (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+-        except Exception, e:
+-            if op.debug > 1: print '%s: exception' (self.filename, e)
++        except Exception as e:
++            if op.debug > 1: print('%s: exception' (self.filename, e))
+             for name in self.vars: self.val[name] = -1
+ 
+ # vim:ts=4:sw=4:et
+diff --git a/plugins/dstat_thermal.py b/plugins/dstat_thermal.py
+index 2e82ac5..1d1f695 100644
+--- a/plugins/dstat_thermal.py
++++ b/plugins/dstat_thermal.py
+@@ -41,14 +41,14 @@ class dstat_plugin(dstat):
+                 self.nick.append(name.lower())
+ 
+         else:
+-            raise Exception, 'Needs kernel thermal, ACPI or IBM-ACPI support'
++            raise Exception('Needs kernel thermal, ACPI or IBM-ACPI support')
+ 
+     def check(self):
+         if not os.path.exists('/proc/acpi/ibm/thermal') and \
+            not os.path.exists('/proc/acpi/thermal_zone/') and \
+            not os.path.exists('/sys/devices/virtual/thermal/') and \
+            not os.path.exists('/sys/bus/acpi/devices/LNXTHERM:00/thermal_zone/'):
+-            raise Exception, 'Needs kernel thermal, ACPI or IBM-ACPI support'
++            raise Exception('Needs kernel thermal, ACPI or IBM-ACPI support')
+ 
+     def extract(self):
+         if os.path.exists('/sys/devices/virtual/thermal/'):
+diff --git a/plugins/dstat_top_bio.py b/plugins/dstat_top_bio.py
+index 6fc5215..a1219d6 100644
+--- a/plugins/dstat_top_bio.py
++++ b/plugins/dstat_top_bio.py
+@@ -16,7 +16,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.access('/proc/self/io', os.R_OK):
+-            raise Exception, 'Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20'
++            raise Exception('Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20')
+ 
+     def extract(self):
+         self.output = ''
+@@ -25,9 +25,9 @@ class dstat_plugin(dstat):
+         for pid in proc_pidlist():
+             try:
+                 ### Reset values
+-                if not self.pidset2.has_key(pid):
++                if pid not in self.pidset2:
+                     self.pidset2[pid] = {'read_bytes:': 0, 'write_bytes:': 0}
+-                if not self.pidset1.has_key(pid):
++                if pid not in self.pidset1:
+                     self.pidset1[pid] = {'read_bytes:': 0, 'write_bytes:': 0}
+ 
+                 ### Extract name
+diff --git a/plugins/dstat_top_bio_adv.py b/plugins/dstat_top_bio_adv.py
+index c9647f7..36b8e30 100644
+--- a/plugins/dstat_top_bio_adv.py
++++ b/plugins/dstat_top_bio_adv.py
+@@ -1,75 +1,75 @@
+-### Dstat all I/O process plugin
+-### Displays all processes' I/O read/write stats and CPU usage
+-###
+-### Authority: Guillermo Cantu Luna
+-
+-class dstat_plugin(dstat):
+-    def __init__(self):
+-        self.name = 'most expensive block i/o process'
+-        self.vars = ('process              pid  read write cpu',)
+-        self.type = 's'
+-        self.width = 40
+-        self.scale = 0
+-        self.pidset1 = {}
+-
+-    def check(self):
+-        if not os.access('/proc/self/io', os.R_OK):
+-            raise Exception, 'Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20'
+-        return True
+-
+-    def extract(self):
+-        self.output = ''
+-        self.pidset2 = {}
+-        self.val['usage'] = 0.0
+-        for pid in proc_pidlist():
+-            try:
+-                ### Reset values
+-                if not self.pidset2.has_key(pid):
+-                    self.pidset2[pid] = {'read_bytes:': 0, 'write_bytes:': 0, 'cputime:': 0, 'cpuper:': 0}
+-                if not self.pidset1.has_key(pid):
+-                    self.pidset1[pid] = {'read_bytes:': 0, 'write_bytes:': 0, 'cputime:': 0, 'cpuper:': 0}
+-
+-                ### Extract name
+-                name = proc_splitline('/proc/%s/stat' % pid)[1][1:-1]
+-
+-                ### Extract counters
+-                for l in proc_splitlines('/proc/%s/io' % pid):
+-                    if len(l) != 2: continue
+-                    self.pidset2[pid][l[0]] = int(l[1])
+-
+-                ### Get CPU usage
+-                l = proc_splitline('/proc/%s/stat' % pid)
+-                if len(l) < 15:
+-                    cpu_usage = 0
+-                else:
+-                    self.pidset2[pid]['cputime:'] = int(l[13]) + int(l[14])
+-                    cpu_usage = (self.pidset2[pid]['cputime:'] - self.pidset1[pid]['cputime:']) * 1.0 / elapsed / cpunr
+-
+-            except ValueError:
+-                continue
+-            except IOError:
+-                continue
+-            except IndexError:
+-                continue
+-
+-            read_usage = (self.pidset2[pid]['read_bytes:'] - self.pidset1[pid]['read_bytes:']) * 1.0 / elapsed
+-            write_usage = (self.pidset2[pid]['write_bytes:'] - self.pidset1[pid]['write_bytes:']) * 1.0 / elapsed
+-            usage = read_usage + write_usage
+-
+-            ### Get the process that spends the most jiffies
+-            if usage > self.val['usage']:
+-                self.val['usage'] = usage
+-                self.val['read_usage'] = read_usage
+-                self.val['write_usage'] = write_usage
+-                self.val['pid'] = pid
+-                self.val['name'] = getnamebypid(pid, name)
+-                self.val['cpu_usage'] = cpu_usage
+-
+-        if step == op.delay:
+-            self.pidset1 = self.pidset2
+-
+-        if self.val['usage'] != 0.0:
+-            self.output = '%-*s%s%-5s%s%s%s%s%%' % (self.width-14-len(pid), self.val['name'][0:self.width-14-len(pid)], color['darkblue'], self.val['pid'], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024), cprint(self.val['cpu_usage'], 'f', 3, 34), color['darkgray'])
+-
+-    def showcsv(self):
+-        return 'Top: %s\t%s\t%s\t%s' % (self.val['name'][0:self.width-20], self.val['read_usage'], self.val['write_usage'], self.val['cpu_usage'])
++### Dstat all I/O process plugin
++### Displays all processes' I/O read/write stats and CPU usage
++###
++### Authority: Guillermo Cantu Luna
++
++class dstat_plugin(dstat):
++    def __init__(self):
++        self.name = 'most expensive block i/o process'
++        self.vars = ('process              pid  read write cpu',)
++        self.type = 's'
++        self.width = 40
++        self.scale = 0
++        self.pidset1 = {}
++
++    def check(self):
++        if not os.access('/proc/self/io', os.R_OK):
++            raise Exception('Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20')
++        return True
++
++    def extract(self):
++        self.output = ''
++        self.pidset2 = {}
++        self.val['usage'] = 0.0
++        for pid in proc_pidlist():
++            try:
++                ### Reset values
++                if pid not in self.pidset2:
++                    self.pidset2[pid] = {'read_bytes:': 0, 'write_bytes:': 0, 'cputime:': 0, 'cpuper:': 0}
++                if pid not in self.pidset1:
++                    self.pidset1[pid] = {'read_bytes:': 0, 'write_bytes:': 0, 'cputime:': 0, 'cpuper:': 0}
++
++                ### Extract name
++                name = proc_splitline('/proc/%s/stat' % pid)[1][1:-1]
++
++                ### Extract counters
++                for l in proc_splitlines('/proc/%s/io' % pid):
++                    if len(l) != 2: continue
++                    self.pidset2[pid][l[0]] = int(l[1])
++
++                ### Get CPU usage
++                l = proc_splitline('/proc/%s/stat' % pid)
++                if len(l) < 15:
++                    cpu_usage = 0
++                else:
++                    self.pidset2[pid]['cputime:'] = int(l[13]) + int(l[14])
++                    cpu_usage = (self.pidset2[pid]['cputime:'] - self.pidset1[pid]['cputime:']) * 1.0 / elapsed / cpunr
++
++            except ValueError:
++                continue
++            except IOError:
++                continue
++            except IndexError:
++                continue
++
++            read_usage = (self.pidset2[pid]['read_bytes:'] - self.pidset1[pid]['read_bytes:']) * 1.0 / elapsed
++            write_usage = (self.pidset2[pid]['write_bytes:'] - self.pidset1[pid]['write_bytes:']) * 1.0 / elapsed
++            usage = read_usage + write_usage
++
++            ### Get the process that spends the most jiffies
++            if usage > self.val['usage']:
++                self.val['usage'] = usage
++                self.val['read_usage'] = read_usage
++                self.val['write_usage'] = write_usage
++                self.val['pid'] = pid
++                self.val['name'] = getnamebypid(pid, name)
++                self.val['cpu_usage'] = cpu_usage
++
++        if step == op.delay:
++            self.pidset1 = self.pidset2
++
++        if self.val['usage'] != 0.0:
++            self.output = '%-*s%s%-5s%s%s%s%s%%' % (self.width-14-len(pid), self.val['name'][0:self.width-14-len(pid)], color['darkblue'], self.val['pid'], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024), cprint(self.val['cpu_usage'], 'f', 3, 34), color['darkgray'])
++
++    def showcsv(self):
++        return 'Top: %s\t%s\t%s\t%s' % (self.val['name'][0:self.width-20], self.val['read_usage'], self.val['write_usage'], self.val['cpu_usage'])
+diff --git a/plugins/dstat_top_childwait.py b/plugins/dstat_top_childwait.py
+index 6403aa7..0a8d0f0 100644
+--- a/plugins/dstat_top_childwait.py
++++ b/plugins/dstat_top_childwait.py
+@@ -26,7 +26,7 @@ class dstat_plugin(dstat):
+             if len(l) < 15: continue
+ 
+             ### Reset previous value if it doesn't exist
+-            if not self.set1.has_key(pid):
++            if pid not in self.set1:
+                 self.set1[pid] = 0
+ 
+             self.set2[pid] = int(l[15]) + int(l[16])
+diff --git a/plugins/dstat_top_cpu.py b/plugins/dstat_top_cpu.py
+index 9111807..ad17ddc 100644
+--- a/plugins/dstat_top_cpu.py
++++ b/plugins/dstat_top_cpu.py
+@@ -30,10 +30,10 @@ class dstat_plugin(dstat):
+             if len(l) < 15: continue
+ 
+             ### Reset previous value if it doesn't exist
+-            if not self.pidset1.has_key(pid):
++            if pid not in self.pidset1:
+                 self.pidset1[pid] = 0
+ 
+-            self.pidset2[pid] = long(l[13]) + long(l[14])
++            self.pidset2[pid] = int(l[13]) + int(l[14])
+             usage = (self.pidset2[pid] - self.pidset1[pid]) * 1.0 / elapsed / cpunr
+ 
+             ### Is it a new topper ?
+diff --git a/plugins/dstat_top_cpu_adv.py b/plugins/dstat_top_cpu_adv.py
+index 900a6a0..9a5b2b5 100644
+--- a/plugins/dstat_top_cpu_adv.py
++++ b/plugins/dstat_top_cpu_adv.py
+@@ -1,74 +1,74 @@
+-### Dstat all I/O process plugin
+-### Displays all processes' I/O read/write stats and CPU usage
+-###
+-### Authority: Guillermo Cantu Luna
+-
+-class dstat_plugin(dstat):
+-    def __init__(self):
+-        self.name = 'most expensive cpu process'
+-        self.vars = ('process              pid  cpu read write',)
+-        self.type = 's'
+-        self.width = 40
+-        self.scale = 0
+-        self.pidset1 = {}
+-
+-    def check(self):
+-        if not os.access('/proc/self/io', os.R_OK):
+-            raise Exception, 'Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20'
+-        return True
+-
+-    def extract(self):
+-        self.output = ''
+-        self.pidset2 = {}
+-        self.val['cpu_usage'] = 0
+-        for pid in proc_pidlist():
+-            try:
+-                ### Reset values
+-                if not self.pidset2.has_key(pid):
+-                    self.pidset2[pid] = {'rchar:': 0, 'wchar:': 0, 'cputime:': 0, 'cpuper:': 0}
+-                if not self.pidset1.has_key(pid):
+-                    self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0, 'cputime:': 0, 'cpuper:': 0}
+-
+-                ### Extract name
+-                name = proc_splitline('/proc/%s/stat' % pid)[1][1:-1]
+-
+-                ### Extract counters
+-                for l in proc_splitlines('/proc/%s/io' % pid):
+-                    if len(l) != 2: continue
+-                    self.pidset2[pid][l[0]] = int(l[1])
+-
+-                ### Get CPU usage
+-                l = proc_splitline('/proc/%s/stat' % pid)
+-                if len(l) < 15:
+-                    cpu_usage = 0.0
+-                else:
+-                    self.pidset2[pid]['cputime:'] = int(l[13]) + int(l[14])
+-                    cpu_usage = (self.pidset2[pid]['cputime:'] - self.pidset1[pid]['cputime:']) * 1.0 / elapsed / cpunr
+-
+-            except ValueError:
+-                continue
+-            except IOError:
+-                continue
+-            except IndexError:
+-                continue
+-
+-            read_usage = (self.pidset2[pid]['rchar:'] - self.pidset1[pid]['rchar:']) * 1.0 / elapsed
+-            write_usage = (self.pidset2[pid]['wchar:'] - self.pidset1[pid]['wchar:']) * 1.0 / elapsed
+-
+-            ### Get the process that spends the most jiffies
+-            if cpu_usage > self.val['cpu_usage']:
+-                self.val['read_usage'] = read_usage
+-                self.val['write_usage'] = write_usage
+-                self.val['pid'] = pid
+-                self.val['name'] = getnamebypid(pid, name)
+-                self.val['cpu_usage'] = cpu_usage
+-
+-        if step == op.delay:
+-            self.pidset1 = self.pidset2
+-
+-        if self.val['cpu_usage'] != 0.0:
+-            self.output = '%-*s%s%-5s%s%s%%%s%s' % (self.width-14-len(pid), self.val['name'][0:self.width-14-len(pid)], color['darkblue'], self.val['pid'], cprint(self.val['cpu_usage'], 'f', 3, 34), color['darkgray'],cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
+-
+-
+-    def showcsv(self):
+-        return 'Top: %s\t%s\t%s\t%s' % (self.val['name'][0:self.width-20], self.val['cpu_usage'], self.val['read_usage'], self.val['write_usage'])
++### Dstat all I/O process plugin
++### Displays all processes' I/O read/write stats and CPU usage
++###
++### Authority: Guillermo Cantu Luna
++
++class dstat_plugin(dstat):
++    def __init__(self):
++        self.name = 'most expensive cpu process'
++        self.vars = ('process              pid  cpu read write',)
++        self.type = 's'
++        self.width = 40
++        self.scale = 0
++        self.pidset1 = {}
++
++    def check(self):
++        if not os.access('/proc/self/io', os.R_OK):
++            raise Exception('Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20')
++        return True
++
++    def extract(self):
++        self.output = ''
++        self.pidset2 = {}
++        self.val['cpu_usage'] = 0
++        for pid in proc_pidlist():
++            try:
++                ### Reset values
++                if pid not in self.pidset2:
++                    self.pidset2[pid] = {'rchar:': 0, 'wchar:': 0, 'cputime:': 0, 'cpuper:': 0}
++                if pid not in self.pidset1:
++                    self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0, 'cputime:': 0, 'cpuper:': 0}
++
++                ### Extract name
++                name = proc_splitline('/proc/%s/stat' % pid)[1][1:-1]
++
++                ### Extract counters
++                for l in proc_splitlines('/proc/%s/io' % pid):
++                    if len(l) != 2: continue
++                    self.pidset2[pid][l[0]] = int(l[1])
++
++                ### Get CPU usage
++                l = proc_splitline('/proc/%s/stat' % pid)
++                if len(l) < 15:
++                    cpu_usage = 0.0
++                else:
++                    self.pidset2[pid]['cputime:'] = int(l[13]) + int(l[14])
++                    cpu_usage = (self.pidset2[pid]['cputime:'] - self.pidset1[pid]['cputime:']) * 1.0 / elapsed / cpunr
++
++            except ValueError:
++                continue
++            except IOError:
++                continue
++            except IndexError:
++                continue
++
++            read_usage = (self.pidset2[pid]['rchar:'] - self.pidset1[pid]['rchar:']) * 1.0 / elapsed
++            write_usage = (self.pidset2[pid]['wchar:'] - self.pidset1[pid]['wchar:']) * 1.0 / elapsed
++
++            ### Get the process that spends the most jiffies
++            if cpu_usage > self.val['cpu_usage']:
++                self.val['read_usage'] = read_usage
++                self.val['write_usage'] = write_usage
++                self.val['pid'] = pid
++                self.val['name'] = getnamebypid(pid, name)
++                self.val['cpu_usage'] = cpu_usage
++
++        if step == op.delay:
++            self.pidset1 = self.pidset2
++
++        if self.val['cpu_usage'] != 0.0:
++            self.output = '%-*s%s%-5s%s%s%%%s%s' % (self.width-14-len(pid), self.val['name'][0:self.width-14-len(pid)], color['darkblue'], self.val['pid'], cprint(self.val['cpu_usage'], 'f', 3, 34), color['darkgray'],cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024))
++
++
++    def showcsv(self):
++        return 'Top: %s\t%s\t%s\t%s' % (self.val['name'][0:self.width-20], self.val['cpu_usage'], self.val['read_usage'], self.val['write_usage'])
+diff --git a/plugins/dstat_top_cputime.py b/plugins/dstat_top_cputime.py
+index e0ccd36..45c29bf 100644
+--- a/plugins/dstat_top_cputime.py
++++ b/plugins/dstat_top_cputime.py
+@@ -22,7 +22,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.access('/proc/self/schedstat', os.R_OK):
+-            raise Exception, 'Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12'
++            raise Exception('Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12')
+ 
+     def extract(self):
+         self.output = ''
+@@ -31,7 +31,7 @@ class dstat_plugin(dstat):
+         for pid in proc_pidlist():
+             try:
+                 ### Reset values
+-                if not self.pidset1.has_key(pid):
++                if pid not in self.pidset1:
+                     self.pidset1[pid] = {'run_ticks': 0}
+ 
+                 ### Extract name
+@@ -46,7 +46,7 @@ class dstat_plugin(dstat):
+ 
+             if len(l) != 3: continue
+ 
+-            self.pidset2[pid] = {'run_ticks': long(l[0])}
++            self.pidset2[pid] = {'run_ticks': int(l[0])}
+ 
+             totrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / elapsed
+ 
+diff --git a/plugins/dstat_top_cputime_avg.py b/plugins/dstat_top_cputime_avg.py
+index 1210187..0df08eb 100644
+--- a/plugins/dstat_top_cputime_avg.py
++++ b/plugins/dstat_top_cputime_avg.py
+@@ -23,7 +23,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.access('/proc/self/schedstat', os.R_OK):
+-            raise Exception, 'Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12'
++            raise Exception('Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12')
+ 
+     def extract(self):
+         self.output = ''
+@@ -32,7 +32,7 @@ class dstat_plugin(dstat):
+         for pid in proc_pidlist():
+             try:
+                 ### Reset values
+-                if not self.pidset1.has_key(pid):
++                if pid not in self.pidset1:
+                     self.pidset1[pid] = {'run_ticks': 0, 'ran': 0}
+ 
+                 ### Extract name
+@@ -47,7 +47,7 @@ class dstat_plugin(dstat):
+ 
+             if len(l) != 3: continue
+ 
+-            self.pidset2[pid] = {'run_ticks': long(l[0]), 'ran': long(l[2])}
++            self.pidset2[pid] = {'run_ticks': int(l[0]), 'ran': int(l[2])}
+ 
+             if self.pidset2[pid]['ran'] - self.pidset1[pid]['ran'] > 0:
+                 avgrun = (self.pidset2[pid]['run_ticks'] - self.pidset1[pid]['run_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / elapsed
+diff --git a/plugins/dstat_top_int.py b/plugins/dstat_top_int.py
+index 829cffe..f0a9fb1 100644
+--- a/plugins/dstat_top_int.py
++++ b/plugins/dstat_top_int.py
+@@ -35,7 +35,7 @@ class dstat_plugin(dstat):
+         self.val['total'] = 0.0
+         for line in self.splitlines():
+             if line[0] == 'intr':
+-                self.intset2 = [ long(i) for i in line[3:] ]
++                self.intset2 = [ int(i) for i in line[3:] ]
+ 
+         if not self.intset1:
+             self.intset1 = [ 0 for i in self.intset2 ]
+diff --git a/plugins/dstat_top_io.py b/plugins/dstat_top_io.py
+index 2c03927..632eaff 100644
+--- a/plugins/dstat_top_io.py
++++ b/plugins/dstat_top_io.py
+@@ -16,7 +16,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.access('/proc/self/io', os.R_OK):
+-            raise Exception, 'Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20'
++            raise Exception('Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20')
+ 
+     def extract(self):
+         self.output = ''
+@@ -25,9 +25,9 @@ class dstat_plugin(dstat):
+         for pid in proc_pidlist():
+             try:
+                 ### Reset values
+-                if not self.pidset2.has_key(pid):
++                if pid not in self.pidset2:
+                     self.pidset2[pid] = {'rchar:': 0, 'wchar:': 0}
+-                if not self.pidset1.has_key(pid):
++                if pid not in self.pidset1:
+                     self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0}
+ 
+                 ### Extract name
+diff --git a/plugins/dstat_top_io_adv.py b/plugins/dstat_top_io_adv.py
+index fc78dbb..c3004d5 100644
+--- a/plugins/dstat_top_io_adv.py
++++ b/plugins/dstat_top_io_adv.py
+@@ -1,75 +1,75 @@
+-### Dstat all I/O process plugin
+-### Displays all processes' I/O read/write stats and CPU usage
+-###
+-### Authority: Guillermo Cantu Luna
+-
+-class dstat_plugin(dstat):
+-    def __init__(self):
+-        self.name = 'most expensive i/o process'
+-        self.vars = ('process              pid  read write cpu',)
+-        self.type = 's'
+-        self.width = 40
+-        self.scale = 0
+-        self.pidset1 = {}
+-
+-    def check(self):
+-        if not os.access('/proc/self/io', os.R_OK):
+-            raise Exception, 'Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20'
+-        return True
+-
+-    def extract(self):
+-        self.output = ''
+-        self.pidset2 = {}
+-        self.val['usage'] = 0.0
+-        for pid in proc_pidlist():
+-            try:
+-                ### Reset values
+-                if not self.pidset2.has_key(pid):
+-                    self.pidset2[pid] = {'rchar:': 0, 'wchar:': 0, 'cputime:': 0, 'cpuper:': 0}
+-                if not self.pidset1.has_key(pid):
+-                    self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0, 'cputime:': 0, 'cpuper:': 0}
+-
+-                ### Extract name
+-                name = proc_splitline('/proc/%s/stat' % pid)[1][1:-1]
+-
+-                ### Extract counters
+-                for l in proc_splitlines('/proc/%s/io' % pid):
+-                    if len(l) != 2: continue
+-                    self.pidset2[pid][l[0]] = int(l[1])
+-
+-                ### Get CPU usage
+-                l = proc_splitline('/proc/%s/stat' % pid)
+-                if len(l) < 15:
+-                    cpu_usage = 0
+-                else:
+-                    self.pidset2[pid]['cputime:'] = int(l[13]) + int(l[14])
+-                    cpu_usage = (self.pidset2[pid]['cputime:'] - self.pidset1[pid]['cputime:']) * 1.0 / elapsed / cpunr
+-
+-            except ValueError:
+-                continue
+-            except IOError:
+-                continue
+-            except IndexError:
+-                continue
+-
+-            read_usage = (self.pidset2[pid]['rchar:'] - self.pidset1[pid]['rchar:']) * 1.0 / elapsed
+-            write_usage = (self.pidset2[pid]['wchar:'] - self.pidset1[pid]['wchar:']) * 1.0 / elapsed
+-            usage = read_usage + write_usage
+-
+-            ### Get the process that spends the most jiffies
+-            if usage > self.val['usage']:
+-                self.val['usage'] = usage
+-                self.val['read_usage'] = read_usage
+-                self.val['write_usage'] = write_usage
+-                self.val['pid'] = pid
+-                self.val['name'] = getnamebypid(pid, name)
+-                self.val['cpu_usage'] = cpu_usage
+-
+-        if step == op.delay:
+-            self.pidset1 = self.pidset2
+-
+-        if self.val['usage'] != 0.0:
+-            self.output = '%-*s%s%-5s%s%s%s%s%%' % (self.width-14-len(pid), self.val['name'][0:self.width-14-len(pid)], color['darkblue'], self.val['pid'], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024), cprint(self.val['cpu_usage'], 'f', 3, 34), color['darkgray'])
+-
+-    def showcsv(self):
+-        return 'Top: %s\t%s\t%s\t%s' % (self.val['name'][0:self.width-20], self.val['read_usage'], self.val['write_usage'], self.val['cpu_usage'])
++### Dstat all I/O process plugin
++### Displays all processes' I/O read/write stats and CPU usage
++###
++### Authority: Guillermo Cantu Luna
++
++class dstat_plugin(dstat):
++    def __init__(self):
++        self.name = 'most expensive i/o process'
++        self.vars = ('process              pid  read write cpu',)
++        self.type = 's'
++        self.width = 40
++        self.scale = 0
++        self.pidset1 = {}
++
++    def check(self):
++        if not os.access('/proc/self/io', os.R_OK):
++            raise Exception('Kernel has no per-process I/O accounting [CONFIG_TASK_IO_ACCOUNTING], use at least 2.6.20')
++        return True
++
++    def extract(self):
++        self.output = ''
++        self.pidset2 = {}
++        self.val['usage'] = 0.0
++        for pid in proc_pidlist():
++            try:
++                ### Reset values
++                if pid not in self.pidset2:
++                    self.pidset2[pid] = {'rchar:': 0, 'wchar:': 0, 'cputime:': 0, 'cpuper:': 0}
++                if pid not in self.pidset1:
++                    self.pidset1[pid] = {'rchar:': 0, 'wchar:': 0, 'cputime:': 0, 'cpuper:': 0}
++
++                ### Extract name
++                name = proc_splitline('/proc/%s/stat' % pid)[1][1:-1]
++
++                ### Extract counters
++                for l in proc_splitlines('/proc/%s/io' % pid):
++                    if len(l) != 2: continue
++                    self.pidset2[pid][l[0]] = int(l[1])
++
++                ### Get CPU usage
++                l = proc_splitline('/proc/%s/stat' % pid)
++                if len(l) < 15:
++                    cpu_usage = 0
++                else:
++                    self.pidset2[pid]['cputime:'] = int(l[13]) + int(l[14])
++                    cpu_usage = (self.pidset2[pid]['cputime:'] - self.pidset1[pid]['cputime:']) * 1.0 / elapsed / cpunr
++
++            except ValueError:
++                continue
++            except IOError:
++                continue
++            except IndexError:
++                continue
++
++            read_usage = (self.pidset2[pid]['rchar:'] - self.pidset1[pid]['rchar:']) * 1.0 / elapsed
++            write_usage = (self.pidset2[pid]['wchar:'] - self.pidset1[pid]['wchar:']) * 1.0 / elapsed
++            usage = read_usage + write_usage
++
++            ### Get the process that spends the most jiffies
++            if usage > self.val['usage']:
++                self.val['usage'] = usage
++                self.val['read_usage'] = read_usage
++                self.val['write_usage'] = write_usage
++                self.val['pid'] = pid
++                self.val['name'] = getnamebypid(pid, name)
++                self.val['cpu_usage'] = cpu_usage
++
++        if step == op.delay:
++            self.pidset1 = self.pidset2
++
++        if self.val['usage'] != 0.0:
++            self.output = '%-*s%s%-5s%s%s%s%s%%' % (self.width-14-len(pid), self.val['name'][0:self.width-14-len(pid)], color['darkblue'], self.val['pid'], cprint(self.val['read_usage'], 'd', 5, 1024), cprint(self.val['write_usage'], 'd', 5, 1024), cprint(self.val['cpu_usage'], 'f', 3, 34), color['darkgray'])
++
++    def showcsv(self):
++        return 'Top: %s\t%s\t%s\t%s' % (self.val['name'][0:self.width-20], self.val['read_usage'], self.val['write_usage'], self.val['cpu_usage'])
+diff --git a/plugins/dstat_top_latency.py b/plugins/dstat_top_latency.py
+index a16df71..e3d2547 100644
+--- a/plugins/dstat_top_latency.py
++++ b/plugins/dstat_top_latency.py
+@@ -23,7 +23,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.access('/proc/self/schedstat', os.R_OK):
+-            raise Exception, 'Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12'
++            raise Exception('Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12')
+ 
+     def extract(self):
+         self.output = ''
+@@ -32,7 +32,7 @@ class dstat_plugin(dstat):
+         for pid in proc_pidlist():
+             try:
+                 ### Reset values
+-                if not self.pidset1.has_key(pid):
++                if pid not in self.pidset1:
+                     self.pidset1[pid] = {'wait_ticks': 0}
+ 
+                 ### Extract name
+@@ -47,7 +47,7 @@ class dstat_plugin(dstat):
+ 
+             if len(l) != 3: continue
+ 
+-            self.pidset2[pid] = {'wait_ticks': long(l[1])}
++            self.pidset2[pid] = {'wait_ticks': int(l[1])}
+ 
+             totwait = (self.pidset2[pid]['wait_ticks'] - self.pidset1[pid]['wait_ticks']) * 1.0 / elapsed
+ 
+diff --git a/plugins/dstat_top_latency_avg.py b/plugins/dstat_top_latency_avg.py
+index 5d45077..974bd29 100644
+--- a/plugins/dstat_top_latency_avg.py
++++ b/plugins/dstat_top_latency_avg.py
+@@ -17,7 +17,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.access('/proc/self/schedstat', os.R_OK):
+-            raise Exception, 'Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12'
++            raise Exception('Kernel has no scheduler statistics [CONFIG_SCHEDSTATS], use at least 2.6.12')
+ 
+     def extract(self):
+         self.output = ''
+@@ -26,7 +26,7 @@ class dstat_plugin(dstat):
+         for pid in proc_pidlist():
+             try:
+                 ### Reset values
+-                if not self.pidset1.has_key(pid):
++                if pid not in self.pidset1:
+                     self.pidset1[pid] = {'wait_ticks': 0, 'ran': 0}
+ 
+                 ### Extract name
+@@ -41,7 +41,7 @@ class dstat_plugin(dstat):
+ 
+             if len(l) != 3: continue
+ 
+-            self.pidset2[pid] = {'wait_ticks': long(l[1]), 'ran': long(l[2])}
++            self.pidset2[pid] = {'wait_ticks': int(l[1]), 'ran': int(l[2])}
+ 
+             if self.pidset2[pid]['ran'] - self.pidset1[pid]['ran'] > 0:
+                 avgwait = (self.pidset2[pid]['wait_ticks'] - self.pidset1[pid]['wait_ticks']) * 1.0 / (self.pidset2[pid]['ran'] - self.pidset1[pid]['ran']) / elapsed
+diff --git a/plugins/dstat_top_oom.py b/plugins/dstat_top_oom.py
+index 83cd7d6..8eb47b4 100644
+--- a/plugins/dstat_top_oom.py
++++ b/plugins/dstat_top_oom.py
+@@ -16,7 +16,7 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.access('/proc/self/oom_score', os.R_OK):
+-            raise Exception, 'Kernel does not support /proc/pid/oom_score, use at least 2.6.11.'
++            raise Exception('Kernel does not support /proc/pid/oom_score, use at least 2.6.11.')
+ 
+     def extract(self):
+         self.output = ''
+diff --git a/plugins/dstat_utmp.py b/plugins/dstat_utmp.py
+index c04183f..5b1951a 100644
+--- a/plugins/dstat_utmp.py
++++ b/plugins/dstat_utmp.py
+@@ -14,7 +14,7 @@ class dstat_plugin(dstat):
+             global utmp
+             import utmp
+         except:
+-            raise Exception, 'Needs python-utmp module'
++            raise Exception('Needs python-utmp module')
+ 
+     def extract(self):
+         for name in self.vars: self.val[name] = 0
+diff --git a/plugins/dstat_vm_cpu.py b/plugins/dstat_vm_cpu.py
+index 262578c..69db0e8 100644
+--- a/plugins/dstat_vm_cpu.py
++++ b/plugins/dstat_vm_cpu.py
+@@ -21,7 +21,7 @@ class dstat_plugin(dstat):
+ 
+             self.gl = vmguestlib.VMGuestLib()
+         except:
+-            raise Exception, 'Needs python-vmguestlib module'
++            raise Exception('Needs python-vmguestlib module')
+ 
+     def extract(self):
+         self.gl.UpdateInfo()
+diff --git a/plugins/dstat_vm_mem.py b/plugins/dstat_vm_mem.py
+index b18d3c5..5a8e5c9 100644
+--- a/plugins/dstat_vm_mem.py
++++ b/plugins/dstat_vm_mem.py
+@@ -20,7 +20,7 @@ class dstat_plugin(dstat):
+ 
+             self.gl = vmguestlib.VMGuestLib()
+         except:
+-            raise Exception, 'Needs python-vmguestlib module'
++            raise Exception('Needs python-vmguestlib module')
+ 
+     def extract(self):
+         self.gl.UpdateInfo()
+diff --git a/plugins/dstat_vm_mem_adv.py b/plugins/dstat_vm_mem_adv.py
+index 465a7c1..986e60c 100644
+--- a/plugins/dstat_vm_mem_adv.py
++++ b/plugins/dstat_vm_mem_adv.py
+@@ -20,7 +20,7 @@ class dstat_plugin(dstat):
+ 
+             self.gl = vmguestlib.VMGuestLib()
+         except:
+-            raise Exception, 'Needs python-vmguestlib module'
++            raise Exception('Needs python-vmguestlib module')
+ 
+     def extract(self):
+         self.gl.UpdateInfo()
+diff --git a/plugins/dstat_vmk_hba.py b/plugins/dstat_vmk_hba.py
+index ca07c11..8026910 100644
+--- a/plugins/dstat_vmk_hba.py
++++ b/plugins/dstat_vmk_hba.py
+@@ -25,7 +25,7 @@ class dstat_plugin(dstat):
+         try:
+             list = os.listdir('/proc/vmware/scsi/')
+         except:
+-            raise Exception, 'Needs VMware ESX'
++            raise Exception('Needs VMware ESX')
+         for name in list:
+             for line in dopen('/proc/vmware/scsi/%s/stats' % name).readlines():
+                 l = line.split()
+@@ -54,7 +54,7 @@ class dstat_plugin(dstat):
+         try:
+             os.listdir('/proc/vmware')
+         except:
+-            raise Exception, 'Needs VMware ESX'
++            raise Exception('Needs VMware ESX')
+         info(1, 'The vmkhba module is an EXPERIMENTAL module.')
+ 
+     def extract(self):
+@@ -68,12 +68,12 @@ class dstat_plugin(dstat):
+                 if l[0] == 'cmds': continue
+                 if l[2] == '0' and l[4] == '0': continue
+                 if l == ['0', ] * 13: continue
+-                self.set2['total'] = ( self.set2['total'][0] + long(l[2]), self.set2['total'][1] + long(l[4]) )
++                self.set2['total'] = ( self.set2['total'][0] + int(l[2]), self.set2['total'][1] + int(l[4]) )
+                 if name in self.vars and name != 'total':
+-                    self.set2[name] = ( long(l[2]), long(l[4]) )
++                    self.set2[name] = ( int(l[2]), int(l[4]) )
+ 
+             for name in self.set2:
+-                self.val[name] = map(lambda x, y: (y - x) * 1024.0 / elapsed, self.set1[name], self.set2[name])
++                self.val[name] = list(map(lambda x, y: (y - x) * 1024.0 / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+diff --git a/plugins/dstat_vmk_int.py b/plugins/dstat_vmk_int.py
+index 82769a7..c65abe8 100644
+--- a/plugins/dstat_vmk_int.py
++++ b/plugins/dstat_vmk_int.py
+@@ -53,7 +53,7 @@ class dstat_plugin(dstat):
+             name = l[0].split(':')[0]
+             amount = 0
+             for i in l[1:1+self.vmkcpunr()]:
+-                amount = amount + long(i)
++                amount = amount + int(i)
+             if amount > 20: ret.append(str(name))
+         return ret
+ 
+@@ -75,7 +75,7 @@ class dstat_plugin(dstat):
+         try:
+             os.listdir('/proc/vmware')
+         except:
+-            raise Exception, 'Needs VMware ESX'
++            raise Exception('Needs VMware ESX')
+         info(1, 'The vmkint module is an EXPERIMENTAL module.')
+ 
+     def extract(self):
+@@ -87,7 +87,7 @@ class dstat_plugin(dstat):
+             if name in self.vars:
+                 self.set2[name] = 0
+                 for i in l[1:1+self.vmkcpunr()]:
+-                    self.set2[name] = self.set2[name] + long(i)
++                    self.set2[name] = self.set2[name] + int(i)
+ 
+         for name in self.set2:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+diff --git a/plugins/dstat_vmk_nic.py b/plugins/dstat_vmk_nic.py
+index 2bec037..472a155 100644
+--- a/plugins/dstat_vmk_nic.py
++++ b/plugins/dstat_vmk_nic.py
+@@ -22,7 +22,7 @@ class dstat_plugin(dstat):
+         try:
+             os.listdir('/proc/vmware')
+         except:
+-            raise Exception, 'Needs VMware ESX'
++            raise Exception('Needs VMware ESX')
+         info(1, 'The vmknic module is an EXPERIMENTAL module.')
+ 
+     def discover(self, *list):
+@@ -63,13 +63,13 @@ class dstat_plugin(dstat):
+             if l[0] == 'Usage:': continue
+             name = l[0]
+             if name in self.vars:
+-                self.set2[name] = ( long(l[6]), long(l[9]) )
++                self.set2[name] = ( int(l[6]), int(l[9]) )
+             if name != 'lo0':
+-                self.set2['total'] = ( self.set2['total'][0] + long(l[6]), self.set2['total'][1] + long(l[9]) )
++                self.set2['total'] = ( self.set2['total'][0] + int(l[6]), self.set2['total'][1] + int(l[9]) )
+ 
+         if update:
+             for name in self.set2:
+-                self.val[name] = map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name])
++                self.val[name] = list(map(lambda x, y: (y - x) * 1.0 / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+diff --git a/plugins/dstat_vz_cpu.py b/plugins/dstat_vz_cpu.py
+index 9bc9088..546c011 100644
+--- a/plugins/dstat_vz_cpu.py
++++ b/plugins/dstat_vz_cpu.py
+@@ -51,8 +51,8 @@ class dstat_plugin(dstat):
+         for l in self.splitlines():
+             if len(l) < 6 or l[0] == 'VEID': continue
+             name = l[0]
+-            self.set2[name] = ( long(l[1]), long(l[3]), long(l[4]) - long(l[1]) - long(l[2]) - long(l[3]), long(l[2]) )
+-            self.set2['total'] = ( self.set2['total'][0] + long(l[1]), self.set2['total'][1] + long(l[3]), self.set2['total'][2] + long(l[4]) - long(l[1]) - long(l[2]) - long(l[3]), self.set2['total'][3] + long(l[2]) )
++            self.set2[name] = ( int(l[1]), int(l[3]), int(l[4]) - int(l[1]) - int(l[2]) - int(l[3]), int(l[2]) )
++            self.set2['total'] = ( self.set2['total'][0] + int(l[1]), self.set2['total'][1] + int(l[3]), self.set2['total'][2] + int(l[4]) - int(l[1]) - int(l[2]) - int(l[3]), self.set2['total'][3] + int(l[2]) )
+ 
+         for name in self.vars:
+             for i in range(self.cols):
+diff --git a/plugins/dstat_vz_io.py b/plugins/dstat_vz_io.py
+index 2ad6e98..bf366ce 100644
+--- a/plugins/dstat_vz_io.py
++++ b/plugins/dstat_vz_io.py
+@@ -27,11 +27,11 @@ class dstat_plugin(dstat):
+ 
+     def check(self):
+         if not os.path.exists('/proc/vz'):
+-            raise Exception, 'System does not have OpenVZ support'
++            raise Exception('System does not have OpenVZ support')
+         elif not os.path.exists('/proc/bc'):
+-            raise Exception, 'System does not have (new) OpenVZ beancounter support'
++            raise Exception('System does not have (new) OpenVZ beancounter support')
+         elif not glob.glob('/proc/bc/*/ioacct'):
+-            raise Exception, 'System does not have any OpenVZ containers'
++            raise Exception('System does not have any OpenVZ containers')
+         info(1, 'Module %s is still experimental.' % self.filename)
+ 
+     def name(self):
+@@ -54,12 +54,12 @@ class dstat_plugin(dstat):
+                 if len(l) != 2: continue
+                 if l[0] not in self.nick: continue
+                 index = self.nick.index(l[0])
+-                self.set2[name][index] = long(l[1])
+-                self.set2['total'][index] = self.set2['total'][index] + long(l[1])
++                self.set2[name][index] = int(l[1])
++                self.set2['total'][index] = self.set2['total'][index] + int(l[1])
+ #            print name, self.val[name], self.set2[name][0], self.set2[name][1]
+ #            print name, self.val[name], self.set1[name][0], self.set1[name][1]
+ 
+-            self.val[name] = map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name])
++            self.val[name] = list(map(lambda x, y: (y - x) / elapsed, self.set1[name], self.set2[name]))
+ 
+         if step == op.delay:
+             self.set1.update(self.set2)
+diff --git a/plugins/dstat_vz_ubc.py b/plugins/dstat_vz_ubc.py
+index 2ac9cdf..89911e0 100644
+--- a/plugins/dstat_vz_ubc.py
++++ b/plugins/dstat_vz_ubc.py
+@@ -50,14 +50,14 @@ class dstat_plugin(dstat):
+             elif len(l) == 7:
+                 name = l[0][0:-1]
+                 if name in self.vars:
+-                    self.set2[name] = self.set2[name] + long(l[6])
+-                self.set2['total'] = self.set2['total'] + long(l[6])
++                    self.set2[name] = self.set2[name] + int(l[6])
++                self.set2['total'] = self.set2['total'] + int(l[6])
+             elif name == '0':
+                 continue
+             else:
+                 if name in self.vars:
+-                    self.set2[name] = self.set2[name] + long(l[5])
+-                self.set2['total'] = self.set2['total'] + long(l[5])
++                    self.set2[name] = self.set2[name] + int(l[5])
++                self.set2['total'] = self.set2['total'] + int(l[5])
+ 
+         for name in self.vars:
+             self.val[name] = (self.set2[name] - self.set1[name]) * 1.0 / elapsed
+diff --git a/plugins/dstat_zfs_arc.py b/plugins/dstat_zfs_arc.py
+index 97d44ca..ecc4347 100644
+--- a/plugins/dstat_zfs_arc.py
++++ b/plugins/dstat_zfs_arc.py
+@@ -19,7 +19,7 @@ class dstat_plugin(dstat):
+             l[0].split()
+             name = l[0]
+             if name in self.vars:
+-                self.set2[name] = long(l[2])
++                self.set2[name] = int(l[2])
+ 
+         for i, name in enumerate (self.vars):
+             if self.counter[i]:
+diff --git a/plugins/dstat_zfs_l2arc.py b/plugins/dstat_zfs_l2arc.py
+index a09bdeb..cb2bfdd 100644
+--- a/plugins/dstat_zfs_l2arc.py
++++ b/plugins/dstat_zfs_l2arc.py
+@@ -19,7 +19,7 @@ class dstat_plugin(dstat):
+             l[0].split()
+             name = l[0]
+             if name in self.vars:
+-                self.set2[name] = long(l[2])
++                self.set2[name] = int(l[2])
+ 
+         for i, name in enumerate (self.vars):
+             if self.counter[i]:
+diff --git a/plugins/dstat_zfs_zil.py b/plugins/dstat_zfs_zil.py
+index f05493c..07921ba 100644
+--- a/plugins/dstat_zfs_zil.py
++++ b/plugins/dstat_zfs_zil.py
+@@ -19,7 +19,7 @@ class dstat_plugin(dstat):
+             l[0].split()
+             name = l[0]
+             if name in self.vars:
+-                self.set2[name] = long(l[2])
++                self.set2[name] = int(l[2])
+ 
+         for i, name in enumerate (self.vars):
+             if self.counter[i]:
+-- 
+2.16.2
+

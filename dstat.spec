@@ -4,7 +4,7 @@
 #
 Name     : dstat
 Version  : 0.7.3
-Release  : 16
+Release  : 18
 URL      : https://github.com/dagwieers/dstat/archive/0.7.3.tar.gz
 Source0  : https://github.com/dagwieers/dstat/archive/0.7.3.tar.gz
 Summary  : Pluggable real-time performance monitoring tool
@@ -13,6 +13,17 @@ License  : GPL-2.0
 Requires: dstat-bin
 Requires: dstat-data
 Requires: dstat-doc
+BuildRequires : asciidoc
+BuildRequires : docbook-xml
+BuildRequires : libxslt-bin
+BuildRequires : python-dev
+BuildRequires : python3-dev
+BuildRequires : util-linux
+BuildRequires : xmlto
+Patch1: 0001-Bring-0.7.3-tag-to-master-HEAD.patch
+Patch2: 0002-porting-to-python-3-just-work-only.patch
+Patch3: 0003-Fix-whitespace.patch
+Patch4: 0004-Skip-XML-document-validation.patch
 
 %description
 Dstat is a versatile replacement for vmstat, iostat, netstat and ifstat.
@@ -58,17 +69,21 @@ doc components for the dstat package.
 
 %prep
 %setup -q -n dstat-0.7.3
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
+%patch4 -p1
 
 %build
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C
-export SOURCE_DATE_EPOCH=1496065476
-make V=1  %{?_smp_mflags}
+export SOURCE_DATE_EPOCH=1519885272
+make  %{?_smp_mflags}
 
 %install
-export SOURCE_DATE_EPOCH=1496065476
+export SOURCE_DATE_EPOCH=1519885272
 rm -rf %{buildroot}
 %make_install
 
@@ -81,6 +96,105 @@ rm -rf %{buildroot}
 
 %files data
 %defattr(-,root,root,-)
+/usr/share/dstat/__pycache__/dstat.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_battery.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_battery_remain.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_condor_queue.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_cpufreq.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_dbus.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_disk_avgqu.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_disk_avgrq.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_disk_svctm.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_disk_tps.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_disk_util.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_disk_wait.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_dstat.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_dstat_cpu.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_dstat_ctxt.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_dstat_mem.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_fan.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_freespace.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_fuse.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_gpfs.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_gpfs_ops.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_helloworld.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_ib.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_innodb_buffer.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_innodb_io.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_innodb_ops.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_jvm_full.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_jvm_vm.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_lustre.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_md_status.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_memcache_hits.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mongodb_conn.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mongodb_mem.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mongodb_opcount.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mongodb_queue.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mongodb_stats.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mysql5_cmds.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mysql5_conn.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mysql5_innodb.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mysql5_innodb_basic.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mysql5_innodb_extra.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mysql5_io.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mysql5_keys.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mysql_io.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_mysql_keys.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_net_packets.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_nfs3.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_nfs3_ops.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_nfsd3.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_nfsd3_ops.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_nfsd4_ops.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_nfsstat4.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_ntp.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_postfix.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_power.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_proc_count.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_qmail.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_redis.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_rpc.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_rpcd.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_sendmail.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_snmp_cpu.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_snmp_load.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_snmp_mem.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_snmp_net.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_snmp_net_err.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_snmp_sys.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_snooze.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_squid.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_test.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_thermal.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_bio.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_bio_adv.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_childwait.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_cpu.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_cpu_adv.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_cputime.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_cputime_avg.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_int.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_io.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_io_adv.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_latency.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_latency_avg.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_mem.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_top_oom.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_utmp.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_vm_cpu.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_vm_mem.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_vm_mem_adv.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_vmk_hba.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_vmk_int.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_vmk_nic.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_vz_cpu.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_vz_io.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_vz_ubc.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_wifi.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_zfs_arc.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_zfs_l2arc.cpython-36.pyc
+/usr/share/dstat/__pycache__/dstat_zfs_zil.cpython-36.pyc
 /usr/share/dstat/dstat.py
 /usr/share/dstat/dstat_battery.py
 /usr/share/dstat/dstat_battery_remain.py
@@ -103,12 +217,20 @@ rm -rf %{buildroot}
 /usr/share/dstat/dstat_gpfs.py
 /usr/share/dstat/dstat_gpfs_ops.py
 /usr/share/dstat/dstat_helloworld.py
+/usr/share/dstat/dstat_ib.py
 /usr/share/dstat/dstat_innodb_buffer.py
 /usr/share/dstat/dstat_innodb_io.py
 /usr/share/dstat/dstat_innodb_ops.py
+/usr/share/dstat/dstat_jvm_full.py
+/usr/share/dstat/dstat_jvm_vm.py
 /usr/share/dstat/dstat_lustre.py
 /usr/share/dstat/dstat_md_status.py
 /usr/share/dstat/dstat_memcache_hits.py
+/usr/share/dstat/dstat_mongodb_conn.py
+/usr/share/dstat/dstat_mongodb_mem.py
+/usr/share/dstat/dstat_mongodb_opcount.py
+/usr/share/dstat/dstat_mongodb_queue.py
+/usr/share/dstat/dstat_mongodb_stats.py
 /usr/share/dstat/dstat_mysql5_cmds.py
 /usr/share/dstat/dstat_mysql5_conn.py
 /usr/share/dstat/dstat_mysql5_innodb.py

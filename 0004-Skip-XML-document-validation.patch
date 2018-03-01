@@ -1,0 +1,26 @@
+From 230873e90ce6fe64fe55d8fe8e2ec8960fa41335 Mon Sep 17 00:00:00 2001
+From: George T Kramer <george.t.kramer@intel.com>
+Date: Wed, 28 Feb 2018 21:47:42 -0800
+Subject: [PATCH] Skip XML document validation
+
+Avoid schema download error during build
+---
+ docs/Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/docs/Makefile b/docs/Makefile
+index c031e82..01fb952 100644
+--- a/docs/Makefile
++++ b/docs/Makefile
+@@ -29,7 +29,7 @@ clean:
+ 	asciidoc -b docbook -d manpage $<
+ 
+ %.1: %.1.xml
+-	@xmlto man $<
++	@xmlto --skip-validation  man $<
+ 
+ %.xml: %.adoc
+ 	asciidoc -b docbook -d article -o $@ $<
+-- 
+2.16.2
+

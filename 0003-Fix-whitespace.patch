@@ -1,0 +1,866 @@
+From aa37723aa627a8bf7698bfbad8af2de047968eae Mon Sep 17 00:00:00 2001
+From: George T Kramer <george.t.kramer@intel.com>
+Date: Wed, 28 Feb 2018 21:57:40 -0800
+Subject: [PATCH] Fix whitespace
+
+Reformat code to comply with the E101 and E121 pep8 standards
+---
+ dstat                            | 222 +++++++++++++++++++--------------------
+ plugins/dstat_condor_queue.py    |   2 +-
+ plugins/dstat_ib.py              |   2 +-
+ plugins/dstat_mongodb_conn.py    |  72 ++++++-------
+ plugins/dstat_mongodb_mem.py     |  88 ++++++++--------
+ plugins/dstat_mongodb_opcount.py |  68 ++++++------
+ plugins/dstat_mongodb_queue.py   |  66 ++++++------
+ plugins/dstat_mongodb_stats.py   |  98 ++++++++---------
+ plugins/dstat_squid.py           |   6 +-
+ plugins/dstat_vm_cpu.py          |   2 +-
+ plugins/dstat_vm_mem.py          |   2 +-
+ plugins/dstat_vm_mem_adv.py      |   2 +-
+ plugins/dstat_zfs_arc.py         |   4 +-
+ plugins/dstat_zfs_l2arc.py       |   4 +-
+ 14 files changed, 319 insertions(+), 319 deletions(-)
+
+diff --git a/dstat b/dstat
+index b5cf4e6..fb77385 100755
+--- a/dstat
++++ b/dstat
+@@ -399,7 +399,7 @@ class dstat:
+         for fd in self.fd:
+             fd.seek(0)
+             for line in fd.readlines():
+-               yield line
++                yield line
+         ### Implemented linecache (for top-plugins) but slows down normal plugins
+ #        for fd in self.fd:
+ #            i = 1
+@@ -1971,12 +1971,12 @@ def cmd_test(cmd):
+ def cmd_readlines(cmd):
+     pipes = os.popen3(cmd, 't', 0)
+     for line in pipes[1].readlines():
+-       yield line
++        yield line
+ 
+ def cmd_splitlines(cmd, sep=None):
+     pipes = os.popen3(cmd, 't', 0)
+     for line in pipes[1].readlines():
+-       yield line.split(sep)
++        yield line.split(sep)
+ 
+ def proc_readlines(filename):
+     "Return the lines of a file, one by one"
+@@ -2344,7 +2344,7 @@ def getcpunr():
+         import multiprocessing
+         return multiprocessing.cpu_count()
+     except (ImportError, NotImplementedError):
+-       pass
++        pass
+ 
+     # Fallback 1
+     try:
+@@ -2716,125 +2716,125 @@ def main():
+         sys.stdout.write('\n')
+ 
+ def perform(update):
+-        "Inner loop that calculates counters and constructs output"
+-        global totlist, oldvislist, vislist, showheader, rows, cols
+-        global elapsed, totaltime, starttime
+-        global loop, step, missed
++    "Inner loop that calculates counters and constructs output"
++    global totlist, oldvislist, vislist, showheader, rows, cols
++    global elapsed, totaltime, starttime
++    global loop, step, missed
+ 
+-        starttime = time.time()
++    starttime = time.time()
+ 
+-        loop = int((update - 1 + op.delay) / op.delay)
+-        step = ((update - 1) % op.delay) + 1
++    loop = int((update - 1 + op.delay) / op.delay)
++    step = ((update - 1) % op.delay) + 1
+ 
+-        ### Get current time (may be different from schedule) for debugging
+-        if not op.debug:
+-            curwidth = 0
+-        else:
+-            if step == 1 or loop == 0:
+-                totaltime = 0
+-            curwidth = 8
++    ### Get current time (may be different from schedule) for debugging
++    if not op.debug:
++        curwidth = 0
++    else:
++        if step == 1 or loop == 0:
++            totaltime = 0
++        curwidth = 8
++
++    ### FIXME: This is temporary functionality, we should do this better
++    ### If it takes longer than 500ms, than warn !
++    if loop != 0 and starttime - inittime - update > 1:
++        missed = missed + 1
++        return 0
++
++    ### Initialise certain variables
++    if loop == 0:
++        elapsed = ticks()
++        rows, cols = 0, 0
++        vislist = []
++        oldvislist = []
++        showheader = True
++    else:
++        elapsed = step
+ 
+-        ### FIXME: This is temporary functionality, we should do this better
+-        ### If it takes longer than 500ms, than warn !
+-        if loop != 0 and starttime - inittime - update > 1:
+-            missed = missed + 1
+-            return 0
++    ### FIXME: Make this part smarter
++    if sys.stdout.isatty():
++        oldcols = cols
++        rows, cols = gettermsize()
+ 
+-        ### Initialise certain variables
+-        if loop == 0:
+-            elapsed = ticks()
+-            rows, cols = 0, 0
++        ### Trim object list to what is visible on screen
++        if oldcols != cols:
+             vislist = []
+-            oldvislist = []
+-            showheader = True
+-        else:
+-            elapsed = step
+-
+-        ### FIXME: Make this part smarter
+-        if sys.stdout.isatty():
+-            oldcols = cols
+-            rows, cols = gettermsize()
+-
+-            ### Trim object list to what is visible on screen
+-            if oldcols != cols:
+-                vislist = []
+-                for o in totlist:
+-                    newwidth = curwidth + o.statwidth() + 1
+-                    if newwidth <= cols or ( vislist == totlist[:-1] and newwidth < cols ):
+-                        vislist.append(o)
+-                        curwidth = newwidth
+-
+-            ### Check when to display the header
+-            if op.header and rows >= 6:
+-                if oldvislist != vislist:
+-                    showheader = True
+-                elif not op.update and loop % (rows - 2) == 0:
+-                    showheader = True
+-                elif op.update and step == 1 and loop % (rows - 1) == 0:
+-                    showheader = True
+-
+-            oldvislist = vislist
+-        else:
+-            vislist = totlist
++            for o in totlist:
++                newwidth = curwidth + o.statwidth() + 1
++                if newwidth <= cols or ( vislist == totlist[:-1] and newwidth < cols ):
++                    vislist.append(o)
++                    curwidth = newwidth
++
++        ### Check when to display the header
++        if op.header and rows >= 6:
++            if oldvislist != vislist:
++                showheader = True
++            elif not op.update and loop % (rows - 2) == 0:
++                showheader = True
++            elif op.update and step == 1 and loop % (rows - 1) == 0:
++                showheader = True
++
++        oldvislist = vislist
++    else:
++        vislist = totlist
+ 
+-        ### Prepare the colors for intermediate updates, last step in a loop is definitive
+-        if step == op.delay:
+-            theme['default'] = ansi['reset']
+-        else:
+-            theme['default'] = theme['text_lo']
++    ### Prepare the colors for intermediate updates, last step in a loop is definitive
++    if step == op.delay:
++        theme['default'] = ansi['reset']
++    else:
++        theme['default'] = theme['text_lo']
+ 
+-        ### The first step is to show the definitive line if necessary
+-        newline = ''
+-        if op.update:
+-            if step == 1 and update != 0:
+-                newline = '\n' + ansi['reset'] + ansi['clearline'] + ansi['save']
+-            elif loop != 0:
+-                newline = ansi['restore']
+-
+-        ### Display header
+-        if showheader:
+-            if loop == 0 and totlist != vislist:
+-                print('Terminal width too small, trimming output.', file=sys.stderr)
+-            showheader = False
+-            sys.stdout.write(newline)
+-            newline = header(totlist, vislist)
+-
+-        ### Calculate all objects (visible, invisible)
+-        line = newline
+-        oline = ''
+-        for o in totlist:
+-            o.extract()
+-            if o in vislist:
+-                line = line + o.show() + o.showend(totlist, vislist)
+-            if op.output and step == op.delay:
+-                oline = oline + o.showcsv() + o.showcsvend(totlist, vislist)
+-
+-        ### Print stats
+-        sys.stdout.write(line + theme['input'])
++    ### The first step is to show the definitive line if necessary
++    newline = ''
++    if op.update:
++        if step == 1 and update != 0:
++            newline = '\n' + ansi['reset'] + ansi['clearline'] + ansi['save']
++        elif loop != 0:
++            newline = ansi['restore']
++
++    ### Display header
++    if showheader:
++        if loop == 0 and totlist != vislist:
++            print('Terminal width too small, trimming output.', file=sys.stderr)
++        showheader = False
++        sys.stdout.write(newline)
++        newline = header(totlist, vislist)
++
++    ### Calculate all objects (visible, invisible)
++    line = newline
++    oline = ''
++    for o in totlist:
++        o.extract()
++        if o in vislist:
++            line = line + o.show() + o.showend(totlist, vislist)
+         if op.output and step == op.delay:
+-            outputfile.write(oline + '\n')
+-            outputfile.flush()
++            oline = oline + o.showcsv() + o.showcsvend(totlist, vislist)
+ 
+-        ### Print debugging output
+-        if op.debug:
+-            totaltime = totaltime + (time.time() - starttime) * 1000.0
+-            if loop == 0:
+-                totaltime = totaltime * step
+-            if op.debug == 1:
+-                sys.stdout.write('%s%6.2fms%s' % (theme['roundtrip'], totaltime / step, theme['input']))
+-            elif op.debug == 2:
+-                sys.stdout.write('%s%6.2f %s%d:%d%s' % (theme['roundtrip'], totaltime / step, theme['debug'], loop, step, theme['input']))
+-            elif op.debug > 2:
+-                sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (theme['roundtrip'], totaltime / step, theme['debug'], loop, step, update, theme['input']))
+-
+-        if missed > 0:
++    ### Print stats
++    sys.stdout.write(line + theme['input'])
++    if op.output and step == op.delay:
++        outputfile.write(oline + '\n')
++        outputfile.flush()
++
++    ### Print debugging output
++    if op.debug:
++        totaltime = totaltime + (time.time() - starttime) * 1000.0
++        if loop == 0:
++            totaltime = totaltime * step
++        if op.debug == 1:
++            sys.stdout.write('%s%6.2fms%s' % (theme['roundtrip'], totaltime / step, theme['input']))
++        elif op.debug == 2:
++            sys.stdout.write('%s%6.2f %s%d:%d%s' % (theme['roundtrip'], totaltime / step, theme['debug'], loop, step, theme['input']))
++        elif op.debug > 2:
++            sys.stdout.write('%s%6.2f %s%d:%d:%d%s' % (theme['roundtrip'], totaltime / step, theme['debug'], loop, step, update, theme['input']))
++
++    if missed > 0:
+ #            sys.stdout.write(' '+theme['error']+'= warn =')
+-            sys.stdout.write(' ' + theme['error'] + 'missed ' + str(missed+1) + ' ticks' + theme['input'])
+-            missed = 0
++        sys.stdout.write(' ' + theme['error'] + 'missed ' + str(missed+1) + ' ticks' + theme['input'])
++        missed = 0
+ 
+-        ### Finish the line
+-        if not op.update:
+-            sys.stdout.write('\n')
++    ### Finish the line
++    if not op.update:
++        sys.stdout.write('\n')
+ 
+ ### Main entrance
+ if __name__ == '__main__':
+diff --git a/plugins/dstat_condor_queue.py b/plugins/dstat_condor_queue.py
+index 5aa67ab..7dc8208 100644
+--- a/plugins/dstat_condor_queue.py
++++ b/plugins/dstat_condor_queue.py
+@@ -116,7 +116,7 @@ class dstat_plugin(dstat):
+         last_line = None
+ 
+         try:
+-	    for repeats in range(3):
++            for repeats in range(3):
+                 for last_line in cmd_readlines(self.condor_status_cmd):
+                     pass
+ 
+diff --git a/plugins/dstat_ib.py b/plugins/dstat_ib.py
+index 0ce8224..b970bd9 100644
+--- a/plugins/dstat_ib.py
++++ b/plugins/dstat_ib.py
+@@ -59,7 +59,7 @@ class dstat_plugin(dstat):
+         for name in ifaces:
+             l=name.split(':');
+             if len(l) < 2:
+-                 continue
++                continue
+             rcv_counter_name=os.path.join('/sys/class/infiniband', l[0], 'ports', l[1], 'counters_ext/port_rcv_data_64')
+             xmit_counter_name=os.path.join('/sys/class/infiniband', l[0], 'ports', l[1], 'counters_ext/port_xmit_data_64')
+             rcv_lines = dopen(rcv_counter_name).readlines()
+diff --git a/plugins/dstat_mongodb_conn.py b/plugins/dstat_mongodb_conn.py
+index 41a7170..f771a8b 100644
+--- a/plugins/dstat_mongodb_conn.py
++++ b/plugins/dstat_mongodb_conn.py
+@@ -10,39 +10,39 @@ global mongodb_host
+ mongodb_host = os.getenv('DSTAT_MONGODB_HOST') or '127.0.0.1:27017'
+ 
+ class dstat_plugin(dstat):
+-  """
+-  Plugin for MongoDB.
+-  """
+-  def __init__(self):
+-    global pymongo
+-    import pymongo
+-
+-    try:
+-      self.m = pymongo.MongoClient(mongodb_host)
+-      if mongodb_pwd:
+-        self.m.admin.authenticate(mongodb_user, mongodb_pwd)
+-      self.db = self.m.admin
+-    except Exception as e:
+-      raise Exception('Cannot interface with MongoDB server: %s' % e)
+-
+-    self.name    = 'mongodb con'
+-    self.nick    = ('curr', 'avail')
+-    self.vars    = ('connections.current', 'connections.available')
+-    self.type    = 'd'
+-    self.width   = 5
+-    self.scale   = 2
+-    self.lastVal = {}
+-
+-  def extract(self):
+-    status = self.db.command("serverStatus")
+-
+-    for name in self.vars:
+-      self.val[name] = (int(self.getDoc(status, name)))
+-
+-  def getDoc(self, dic, doc):
+-    par = doc.split('.')
+-    sdic = dic
+-    for p in par:
+-      sdic = sdic.get(p)
+-
+-    return sdic
++    """
++    Plugin for MongoDB.
++    """
++    def __init__(self):
++        global pymongo
++        import pymongo
++
++        try:
++            self.m = pymongo.MongoClient(mongodb_host)
++            if mongodb_pwd:
++                self.m.admin.authenticate(mongodb_user, mongodb_pwd)
++            self.db = self.m.admin
++        except Exception as e:
++            raise Exception('Cannot interface with MongoDB server: %s' % e)
++
++        self.name    = 'mongodb con'
++        self.nick    = ('curr', 'avail')
++        self.vars    = ('connections.current', 'connections.available')
++        self.type    = 'd'
++        self.width   = 5
++        self.scale   = 2
++        self.lastVal = {}
++
++    def extract(self):
++        status = self.db.command("serverStatus")
++
++        for name in self.vars:
++            self.val[name] = (int(self.getDoc(status, name)))
++
++    def getDoc(self, dic, doc):
++        par = doc.split('.')
++        sdic = dic
++        for p in par:
++            sdic = sdic.get(p)
++
++        return sdic
+diff --git a/plugins/dstat_mongodb_mem.py b/plugins/dstat_mongodb_mem.py
+index 9422d3f..8a5bc78 100644
+--- a/plugins/dstat_mongodb_mem.py
++++ b/plugins/dstat_mongodb_mem.py
+@@ -10,58 +10,58 @@ global mongodb_host
+ mongodb_host = os.getenv('DSTAT_MONGODB_HOST') or '127.0.0.1:27017'
+ 
+ class dstat_plugin(dstat):
+-  """
+-  Plugin for MongoDB.
+-  """
+-  def __init__(self):
+-    global pymongo
+-    import pymongo
++    """
++    Plugin for MongoDB.
++    """
++    def __init__(self):
++        global pymongo
++        import pymongo
+ 
+-    try:
+-      self.m = pymongo.MongoClient(mongodb_host)
+-      if mongodb_pwd:
+-        self.m.admin.authenticate(mongodb_user, mongodb_pwd)
+-      self.db = self.m.admin
+-    except Exception as e:
+-      raise Exception('Cannot interface with MongoDB server: %s' % e)
++        try:
++            self.m = pymongo.MongoClient(mongodb_host)
++            if mongodb_pwd:
++                self.m.admin.authenticate(mongodb_user, mongodb_pwd)
++            self.db = self.m.admin
++        except Exception as e:
++            raise Exception('Cannot interface with MongoDB server: %s' % e)
+ 
+-    line = self.db.command("serverStatus")
+-    if 'storageEngine' in line:
+-      self.storageEngine = line.get('storageEngine').get('name')
+-    else:
+-      self.storageEngine = 'mmapv1'
++        line = self.db.command("serverStatus")
++        if 'storageEngine' in line:
++            self.storageEngine = line.get('storageEngine').get('name')
++        else:
++            self.storageEngine = 'mmapv1'
+ 
+-    self.name    = 'mongodb mem'
+-    self.nick    = ('res', 'virt')
+-    self.vars    = ('mem.resident', 'mem.virtual')
+-    self.type    = 'd'
+-    self.width   = 5
+-    self.scale   = 2
+-    self.lastVal = {}
++        self.name    = 'mongodb mem'
++        self.nick    = ('res', 'virt')
++        self.vars    = ('mem.resident', 'mem.virtual')
++        self.type    = 'd'
++        self.width   = 5
++        self.scale   = 2
++        self.lastVal = {}
+ 
+-    if self.storageEngine == 'mmapv1':
+-      self.nick = self.nick + ('map', 'mapj', 'flt')
+-      self.vars = self.vars + ('mem.mapped', 'mem.mappedWithJournal', 'extra_info.page_faults')
++        if self.storageEngine == 'mmapv1':
++            self.nick = self.nick + ('map', 'mapj', 'flt')
++            self.vars = self.vars + ('mem.mapped', 'mem.mappedWithJournal', 'extra_info.page_faults')
+ 
+ 
+-  def extract(self):
+-    status = self.db.command("serverStatus")
++    def extract(self):
++        status = self.db.command("serverStatus")
+ 
+-    for name in self.vars:
+-      if name in ('extra_info.page_faults'):
+-        if not name in self.lastVal:
+-          self.lastVal[name] = int(self.getDoc(status, name))
+-        self.val[name] = (int(self.getDoc(status, name)) - self.lastVal[name])
+-        self.lastVal[name] = self.getDoc(status, name)
+-      else:
+-        self.val[name] = (int(self.getDoc(status, name)))
++        for name in self.vars:
++            if name in ('extra_info.page_faults'):
++                if not name in self.lastVal:
++                    self.lastVal[name] = int(self.getDoc(status, name))
++                self.val[name] = (int(self.getDoc(status, name)) - self.lastVal[name])
++                self.lastVal[name] = self.getDoc(status, name)
++            else:
++                self.val[name] = (int(self.getDoc(status, name)))
+ 
+ 
+ 
+-  def getDoc(self, dic, doc):
+-    par = doc.split('.')
+-    sdic = dic
+-    for p in par:
+-      sdic = sdic.get(p)
++    def getDoc(self, dic, doc):
++        par = doc.split('.')
++        sdic = dic
++        for p in par:
++            sdic = sdic.get(p)
+ 
+-    return sdic
++        return sdic
+diff --git a/plugins/dstat_mongodb_opcount.py b/plugins/dstat_mongodb_opcount.py
+index 5a5c89a..2e6731d 100644
+--- a/plugins/dstat_mongodb_opcount.py
++++ b/plugins/dstat_mongodb_opcount.py
+@@ -10,37 +10,37 @@ global mongodb_host
+ mongodb_host = os.getenv('DSTAT_MONGODB_HOST') or '127.0.0.1:27017'
+ 
+ class dstat_plugin(dstat):
+-  """
+-  Plugin for MongoDB.
+-  """
+-  def __init__(self):
+-    global pymongo
+-    import pymongo
+-
+-    try:
+-      self.m = pymongo.MongoClient(mongodb_host)
+-      if mongodb_pwd:
+-        self.m.admin.authenticate(mongodb_user, mongodb_pwd)
+-      self.db = self.m.admin
+-    except Exception as e:
+-      raise Exception('Cannot interface with MongoDB server: %s' % e)
+-
+-    self.name    = 'mongodb counts'
+-    self.nick    = ('qry', 'ins', 'upd', 'del', 'gtm', 'cmd')
+-    self.vars    = ('query', 'insert','update','delete','getmore','command')
+-    self.type    = 'd'
+-    self.width   = 5
+-    self.scale   = 2
+-    self.lastVal = {}
+-
+-  def extract(self):
+-    status = self.db.command("serverStatus")
+-    opct = status['opcounters']
+-
+-    for name in self.vars:
+-      if name in iter(opct.keys()):
+-        if not name in self.lastVal:
+-          self.lastVal[name] = opct.get(name)
+-
+-        self.val[name]     = (int(opct.get(name)) - self.lastVal[name]) / elapsed
+-        self.lastVal[name] = opct.get(name)
++    """
++    Plugin for MongoDB.
++    """
++    def __init__(self):
++        global pymongo
++        import pymongo
++
++        try:
++            self.m = pymongo.MongoClient(mongodb_host)
++            if mongodb_pwd:
++                self.m.admin.authenticate(mongodb_user, mongodb_pwd)
++            self.db = self.m.admin
++        except Exception as e:
++            raise Exception('Cannot interface with MongoDB server: %s' % e)
++
++        self.name    = 'mongodb counts'
++        self.nick    = ('qry', 'ins', 'upd', 'del', 'gtm', 'cmd')
++        self.vars    = ('query', 'insert','update','delete','getmore','command')
++        self.type    = 'd'
++        self.width   = 5
++        self.scale   = 2
++        self.lastVal = {}
++
++    def extract(self):
++        status = self.db.command("serverStatus")
++        opct = status['opcounters']
++
++        for name in self.vars:
++            if name in iter(opct.keys()):
++                if not name in self.lastVal:
++                    self.lastVal[name] = opct.get(name)
++
++                self.val[name]     = (int(opct.get(name)) - self.lastVal[name]) / elapsed
++                self.lastVal[name] = opct.get(name)
+diff --git a/plugins/dstat_mongodb_queue.py b/plugins/dstat_mongodb_queue.py
+index 492f70c..a38333d 100644
+--- a/plugins/dstat_mongodb_queue.py
++++ b/plugins/dstat_mongodb_queue.py
+@@ -10,36 +10,36 @@ global mongodb_host
+ mongodb_host = os.getenv('DSTAT_MONGODB_HOST') or '127.0.0.1:27017'
+ 
+ class dstat_plugin(dstat):
+-  """
+-  Plugin for MongoDB.
+-  """
+-  def __init__(self):
+-    global pymongo
+-    import pymongo
+-
+-    try:
+-      self.m = pymongo.MongoClient(mongodb_host)
+-      if mongodb_pwd:
+-        self.m.admin.authenticate(mongodb_user, mongodb_pwd)
+-      self.db = self.m.admin
+-    except Exception as e:
+-      raise Exception('Cannot interface with MongoDB server: %s' % e)
+-
+-    self.name    = 'mongodb queues'
+-    self.nick    = ('ar', 'aw', 'qt', 'qw')
+-    self.vars    = ('ar', 'aw', 'qt', 'qw')
+-    self.type    = 'd'
+-    self.width   = 5
+-    self.scale   = 2
+-    self.lastVal = {}
+-
+-  def extract(self):
+-    status = self.db.command("serverStatus")
+-    glock = status['globalLock']
+-    alock = glock['activeClients']
+-    qlock = glock['currentQueue']
+-
+-    self.val['ar'] = int(alock['readers'])
+-    self.val['aw'] = int(alock['writers'])
+-    self.val['qr'] = int(qlock['readers'])
+-    self.val['qw'] = int(qlock['writers'])
++    """
++    Plugin for MongoDB.
++    """
++    def __init__(self):
++        global pymongo
++        import pymongo
++
++        try:
++            self.m = pymongo.MongoClient(mongodb_host)
++            if mongodb_pwd:
++                self.m.admin.authenticate(mongodb_user, mongodb_pwd)
++            self.db = self.m.admin
++        except Exception as e:
++            raise Exception('Cannot interface with MongoDB server: %s' % e)
++
++        self.name    = 'mongodb queues'
++        self.nick    = ('ar', 'aw', 'qt', 'qw')
++        self.vars    = ('ar', 'aw', 'qt', 'qw')
++        self.type    = 'd'
++        self.width   = 5
++        self.scale   = 2
++        self.lastVal = {}
++
++    def extract(self):
++        status = self.db.command("serverStatus")
++        glock = status['globalLock']
++        alock = glock['activeClients']
++        qlock = glock['currentQueue']
++
++        self.val['ar'] = int(alock['readers'])
++        self.val['aw'] = int(alock['writers'])
++        self.val['qr'] = int(qlock['readers'])
++        self.val['qw'] = int(qlock['writers'])
+diff --git a/plugins/dstat_mongodb_stats.py b/plugins/dstat_mongodb_stats.py
+index 48262c7..99f9d50 100644
+--- a/plugins/dstat_mongodb_stats.py
++++ b/plugins/dstat_mongodb_stats.py
+@@ -10,62 +10,62 @@ global mongodb_host
+ mongodb_host = os.getenv('DSTAT_MONGODB_HOST') or '127.0.0.1:27017'
+ 
+ class dstat_plugin(dstat):
+-  """
+-  Plugin for MongoDB.
+-  """
+-  def __init__(self):
+-    global pymongo
+-    import pymongo
++    """
++    Plugin for MongoDB.
++    """
++    def __init__(self):
++        global pymongo
++        import pymongo
+ 
+-    try:
+-      self.m = pymongo.MongoClient(mongodb_host)
+-      if mongodb_pwd:
+-        self.m.admin.authenticate(mongodb_user, mongodb_pwd)
+-      self.db = self.m.admin
+-    except Exception as e:
+-      raise Exception('Cannot interface with MongoDB server: %s' % e)
++        try:
++            self.m = pymongo.MongoClient(mongodb_host)
++            if mongodb_pwd:
++                self.m.admin.authenticate(mongodb_user, mongodb_pwd)
++            self.db = self.m.admin
++        except Exception as e:
++            raise Exception('Cannot interface with MongoDB server: %s' % e)
+ 
+-    stats  = self.db.command("listDatabases")
+-    self.dbList = []
+-    for db in stats.get('databases'):
+-      self.dbList.append(db.get('name'))
++        stats  = self.db.command("listDatabases")
++        self.dbList = []
++        for db in stats.get('databases'):
++            self.dbList.append(db.get('name'))
+ 
+-    line = self.db.command("serverStatus")
+-    if 'storageEngine' in line:
+-      self.storageEngine = line.get('storageEngine').get('name')
+-    else:
+-      self.storageEngine = 'mmapv1'
++        line = self.db.command("serverStatus")
++        if 'storageEngine' in line:
++            self.storageEngine = line.get('storageEngine').get('name')
++        else:
++            self.storageEngine = 'mmapv1'
+ 
+-    self.name    = 'mongodb stats'
+-    self.nick    = ('dsize', 'isize', 'ssize')
+-    self.vars    = ('dataSize', 'indexSize', 'storageSize')
+-    self.type    = 'b'
+-    self.width   = 5
+-    self.scale   = 2
+-    self.count   = 1
++        self.name    = 'mongodb stats'
++        self.nick    = ('dsize', 'isize', 'ssize')
++        self.vars    = ('dataSize', 'indexSize', 'storageSize')
++        self.type    = 'b'
++        self.width   = 5
++        self.scale   = 2
++        self.count   = 1
+ 
+-    if self.storageEngine == 'mmapv1':
+-      self.nick  = self.nick + ('fsize',)
+-      self.vars  = self.vars + ('fileSize',)
++        if self.storageEngine == 'mmapv1':
++            self.nick  = self.nick + ('fsize',)
++            self.vars  = self.vars + ('fileSize',)
+ 
+ 
+-  def extract(self):
+-    self.set = {}
++    def extract(self):
++        self.set = {}
+ 
+-    # refresh the database list every 10 iterations
+-    if (self.count % 10) == 0:
+-      stats  = self.m.admin.command("listDatabases")
+-      self.dbList = []
+-      for db in stats.get('databases'):
+-        self.dbList.append(db.get('name'))
+-    self.count += 1
++        # refresh the database list every 10 iterations
++        if (self.count % 10) == 0:
++            stats  = self.m.admin.command("listDatabases")
++            self.dbList = []
++            for db in stats.get('databases'):
++                self.dbList.append(db.get('name'))
++        self.count += 1
+ 
+-    for name in self.vars:
+-      self.set[name] = 0
++        for name in self.vars:
++            self.set[name] = 0
+ 
+-    for db in self.dbList:
+-      self.db = self.m.get_database(db)
+-      stats = self.db.command("dbStats")
+-      for name in self.vars:
+-        self.set[name] += int(stats.get(name)) / (1024 * 1024)
+-    self.val = self.set
++        for db in self.dbList:
++            self.db = self.m.get_database(db)
++            stats = self.db.command("dbStats")
++            for name in self.vars:
++                self.set[name] += int(stats.get(name)) / (1024 * 1024)
++        self.val = self.set
+diff --git a/plugins/dstat_squid.py b/plugins/dstat_squid.py
+index c864cf5..2e0ee0e 100644
+--- a/plugins/dstat_squid.py
++++ b/plugins/dstat_squid.py
+@@ -5,10 +5,10 @@
+ # - CentOS release 5.4 (Final)
+ # - Python 2.4.3
+ # - Squid 2.6 and 2.7
+- 
++
+ global squidclient_options
+ squidclient_options = os.getenv('DSTAT_SQUID_OPTS') # -p 8080
+- 
++
+ class dstat_plugin(dstat):
+     '''
+     Provides various Squid statistics.
+@@ -34,7 +34,7 @@ class dstat_plugin(dstat):
+             raise Exception('Needs squidclient binary')
+         cmd_test('/usr/sbin/squidclient %s mgr:info' % squidclient_options)
+         return True
+- 
++
+     def extract(self):
+         try:
+             for l in cmd_splitlines('/usr/sbin/squidclient %s mgr:info' % squidclient_options, ':'):
+diff --git a/plugins/dstat_vm_cpu.py b/plugins/dstat_vm_cpu.py
+index 69db0e8..1c12755 100644
+--- a/plugins/dstat_vm_cpu.py
++++ b/plugins/dstat_vm_cpu.py
+@@ -35,4 +35,4 @@ class dstat_plugin(dstat):
+         if step == op.delay:
+             self.set1.update(self.set2)
+ 
+-# vim:ts=4:sw=4
+\ No newline at end of file
++# vim:ts=4:sw=4
+diff --git a/plugins/dstat_vm_mem.py b/plugins/dstat_vm_mem.py
+index 5a8e5c9..ca112d8 100644
+--- a/plugins/dstat_vm_mem.py
++++ b/plugins/dstat_vm_mem.py
+@@ -30,4 +30,4 @@ class dstat_plugin(dstat):
+         self.val['swapped'] = self.gl.GetMemSwappedMB() * 1024 ** 2
+         self.val['used'] = self.gl.GetMemUsedMB() * 1024 ** 2
+ 
+-# vim:ts=4:sw=4
+\ No newline at end of file
++# vim:ts=4:sw=4
+diff --git a/plugins/dstat_vm_mem_adv.py b/plugins/dstat_vm_mem_adv.py
+index 986e60c..ce423aa 100644
+--- a/plugins/dstat_vm_mem_adv.py
++++ b/plugins/dstat_vm_mem_adv.py
+@@ -34,4 +34,4 @@ class dstat_plugin(dstat):
+         self.val['targetsize'] = self.gl.GetMemTargetSizeMB() * 1024 ** 2
+         self.val['used'] = self.gl.GetMemUsedMB() * 1024 ** 2
+ 
+-# vim:ts=4:sw=4
+\ No newline at end of file
++# vim:ts=4:sw=4
+diff --git a/plugins/dstat_zfs_arc.py b/plugins/dstat_zfs_arc.py
+index ecc4347..9924bcf 100644
+--- a/plugins/dstat_zfs_arc.py
++++ b/plugins/dstat_zfs_arc.py
+@@ -29,9 +29,9 @@ class dstat_plugin(dstat):
+ 
+         self.val['total'] = self.val['hits'] + self.val['misses']
+ 
+-	if self.val['total'] > 0 :
++        if self.val['total'] > 0 :
+             self.val['hit_rate'] = self.val['hits'] / self.val['total'] * 100.0
+-	else:
++        else:
+             self.val['hit_rate'] = 0
+ 
+         if step == op.delay:
+diff --git a/plugins/dstat_zfs_l2arc.py b/plugins/dstat_zfs_l2arc.py
+index cb2bfdd..0883613 100644
+--- a/plugins/dstat_zfs_l2arc.py
++++ b/plugins/dstat_zfs_l2arc.py
+@@ -29,9 +29,9 @@ class dstat_plugin(dstat):
+ 
+         probes = self.val['l2_hits'] + self.val['l2_misses']
+ 
+-	if probes > 0 :
++        if probes > 0 :
+             self.val['hit_rate'] = self.val['l2_hits'] / probes * 100.0
+-	else:
++        else:
+             self.val['hit_rate'] = 0
+ 
+         if step == op.delay:
+-- 
+2.16.2
+
