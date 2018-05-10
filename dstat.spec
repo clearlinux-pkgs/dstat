@@ -4,7 +4,7 @@
 #
 Name     : dstat
 Version  : 0.7.3
-Release  : 18
+Release  : 19
 URL      : https://github.com/dagwieers/dstat/archive/0.7.3.tar.gz
 Source0  : https://github.com/dagwieers/dstat/archive/0.7.3.tar.gz
 Summary  : Pluggable real-time performance monitoring tool
