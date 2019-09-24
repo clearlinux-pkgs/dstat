@@ -4,7 +4,7 @@
 #
 Name     : dstat
 Version  : 0.7.3
-Release  : 20
+Release  : 21
 URL      : https://github.com/dagwieers/dstat/archive/0.7.3.tar.gz
 Source0  : https://github.com/dagwieers/dstat/archive/0.7.3.tar.gz
 Summary  : Pluggable real-time performance monitoring tool
@@ -17,7 +17,6 @@ Requires: dstat-man = %{version}-%{release}
 BuildRequires : asciidoc
 BuildRequires : docbook-xml
 BuildRequires : libxslt-bin
-BuildRequires : python-dev
 BuildRequires : python3-dev
 BuildRequires : util-linux
 BuildRequires : xmlto
@@ -48,7 +47,6 @@ Summary: bin components for the dstat package.
 Group: Binaries
 Requires: dstat-data = %{version}-%{release}
 Requires: dstat-license = %{version}-%{release}
-Requires: dstat-man = %{version}-%{release}
 
 %description bin
 bin components for the dstat package.
@@ -89,12 +87,18 @@ man components for the dstat package.
 export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
-export LANG=C
-export SOURCE_DATE_EPOCH=1542484103
+export LANG=C.UTF-8
+export SOURCE_DATE_EPOCH=1569350576
+export GCC_IGNORE_WERROR=1
+export CFLAGS="$CFLAGS -fno-lto "
+export FCFLAGS="$CFLAGS -fno-lto "
+export FFLAGS="$CFLAGS -fno-lto "
+export CXXFLAGS="$CXXFLAGS -fno-lto "
 make  %{?_smp_mflags}
 
+
 %install
-export SOURCE_DATE_EPOCH=1542484103
+export SOURCE_DATE_EPOCH=1569350576
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/dstat
 cp COPYING %{buildroot}/usr/share/package-licenses/dstat/COPYING

@@ -4,6 +4,5 @@ asciidoc
 docbook-xml
 libxslt-bin
 python3-dev
-python-dev
 util-linux
 xmlto
