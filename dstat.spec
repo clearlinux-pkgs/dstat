@@ -4,10 +4,10 @@
 #
 Name     : dstat
 Version  : 0.7.4
-Release  : 22
+Release  : 23
 URL      : https://github.com/dagwieers/dstat/archive/v0.7.4/dstat-0.7.4.tar.gz
 Source0  : https://github.com/dagwieers/dstat/archive/v0.7.4/dstat-0.7.4.tar.gz
-Summary  : A versatile resource statistics tool
+Summary  : Pluggable real-time performance monitoring tool
 Group    : Development/Tools
 License  : GPL-2.0
 Requires: dstat-bin = %{version}-%{release}
@@ -75,6 +75,7 @@ man components for the dstat package.
 
 %prep
 %setup -q -n dstat-0.7.4
+cd %{_builddir}/dstat-0.7.4
 %patch1 -p1
 
 %build
@@ -82,18 +83,17 @@ export http_proxy=http://127.0.0.1:9/
 export https_proxy=http://127.0.0.1:9/
 export no_proxy=localhost,127.0.0.1,0.0.0.0
 export LANG=C.UTF-8
-export SOURCE_DATE_EPOCH=1572793919
-# -Werror is for werrorists
+export SOURCE_DATE_EPOCH=1604886865
 export GCC_IGNORE_WERROR=1
 export CFLAGS="$CFLAGS -fno-lto "
-export FCFLAGS="$CFLAGS -fno-lto "
-export FFLAGS="$CFLAGS -fno-lto "
+export FCFLAGS="$FFLAGS -fno-lto "
+export FFLAGS="$FFLAGS -fno-lto "
 export CXXFLAGS="$CXXFLAGS -fno-lto "
 make  %{?_smp_mflags}
 
 
 %install
-export SOURCE_DATE_EPOCH=1572793919
+export SOURCE_DATE_EPOCH=1604886865
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/usr/share/package-licenses/dstat
 cp %{_builddir}/dstat-0.7.4/COPYING %{buildroot}/usr/share/package-licenses/dstat/4cc77b90af91e615a64ae04893fdffa7939db84c
