@@ -4,7 +4,7 @@
 #
 Name     : dstat
 Version  : 0.7.4
-Release  : 24
+Release  : 25
 URL      : https://github.com/dagwieers/dstat/archive/v0.7.4/dstat-0.7.4.tar.gz
 Source0  : https://github.com/dagwieers/dstat/archive/v0.7.4/dstat-0.7.4.tar.gz
 Summary  : Pluggable real-time performance monitoring tool
